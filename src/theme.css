@@ -781,3 +781,109 @@ body { font-family: "DM Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
   .tracking-stage-marker { width: 28px; height: 28px; }
   .tracking-stage-label { max-width: 100%; font-size: 10px; line-height: 1.2; overflow-wrap: anywhere; }
 }
+
+/* Scroll and interaction motion for the coming-soon, ingredients, and care sections */
+.serum-teaser { transition: transform .35s cubic-bezier(.2, .7, .2, 1), box-shadow .35s ease; }
+.serum-teaser:hover { transform: translateY(-3px); box-shadow: var(--shadow-lg); }
+.ingredients-section .nb-item,
+.ingredients-section .nb-arch,
+.ingredients-section .growth-card,
+.care-section .care-main,
+.care-section .care-step {
+  transition: transform .35s cubic-bezier(.2, .7, .2, 1), box-shadow .35s ease, border-color .3s ease;
+}
+
+.ingredients-section .nb-item:hover,
+.ingredients-section .growth-card:hover,
+.care-section .care-main:hover,
+.care-section .care-step:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-md);
+}
+
+.ingredients-section .nb-circle img,
+.ingredients-section .nb-arch img,
+.care-section .care-main img,
+.care-section .care-step > img {
+  transition: transform .55s cubic-bezier(.2, .7, .2, 1);
+}
+
+.ingredients-section .nb-item:hover .nb-circle img,
+.ingredients-section .nb-arch:hover img,
+.care-section .care-main:hover img,
+.care-section .care-step:hover > img {
+  transform: scale(1.045);
+}
+
+.serum-teaser-media > img {
+  transform-origin: center;
+  animation: serum-gentle-float 8s ease-in-out infinite;
+}
+
+@keyframes serum-gentle-float {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.018); }
+}
+
+@supports (animation-timeline: view()) {
+  .serum-teaser,
+  .ingredients-section .section-intro,
+  .ingredients-section .nb-item,
+  .ingredients-section .nb-arch,
+  .ingredients-section .growth-card,
+  .care-section .section-intro,
+  .care-section .care-main,
+  .care-section .care-step {
+    animation-name: hairgrow-section-reveal;
+    animation-duration: 1ms;
+    animation-timing-function: linear;
+    animation-fill-mode: both;
+    animation-timeline: view();
+    animation-range: entry 0% entry 38%;
+  }
+
+  .ingredients-section .nb-col:first-child .nb-item:nth-child(2),
+  .care-section .care-step:nth-child(2) {
+    animation-range: entry 8% entry 46%;
+  }
+
+  .ingredients-section .nb-col:last-child .nb-item:nth-child(2),
+  .care-section .care-step:nth-child(3) {
+    animation-range: entry 16% entry 54%;
+  }
+
+  .ingredients-section .nb-col:first-child .nb-item:nth-child(3),
+  .ingredients-section .nb-col:last-child .nb-item:nth-child(3) {
+    animation-range: entry 24% entry 62%;
+  }
+}
+
+@keyframes hairgrow-section-reveal {
+  from { opacity: 0; translate: 0 18px; }
+  to { opacity: 1; translate: 0 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .serum-teaser-media > img { animation: none; }
+  .serum-teaser,
+  .ingredients-section .section-intro,
+  .ingredients-section .nb-item,
+  .ingredients-section .nb-arch,
+  .ingredients-section .growth-card,
+  .care-section .section-intro,
+  .care-section .care-main,
+  .care-section .care-step {
+    animation: none !important;
+    transition: none !important;
+    transform: none !important;
+    translate: none !important;
+    opacity: 1 !important;
+  }
+  .ingredients-section .nb-circle img,
+  .ingredients-section .nb-arch img,
+  .care-section .care-main img,
+  .care-section .care-step > img {
+    transition: none !important;
+    transform: none !important;
+  }
+}
