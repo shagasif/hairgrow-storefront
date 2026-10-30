@@ -28,6 +28,11 @@ import {
   Sparkles,
   Star,
   X,
+  Instagram,
+  Facebook,
+  Twitter,
+  Mail,
+  MessageCircle,
 } from 'lucide-react'
 
 const bottleStyles = {
@@ -217,7 +222,9 @@ function Header({ count, onCart, cartButtonRef, theme, onTheme }) {
           <a className="nav-order" href="#catalog" onClick={closeMenu}>Order now <ArrowRight size={14} /></a>
         </nav>
         <div className="header-actions">
-          <button className="theme-toggle" onClick={onTheme} aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}>{theme === 'dark' ? <Sun size={17} /> : <Moon size={17} />}</button>
+          <button className="theme-switch" role="switch" aria-checked={theme === 'dark'} onClick={onTheme} aria-label={theme === 'dark' ? 'Switch to day mode' : 'Switch to night mode'}>
+            <span key={theme} className="ts-icon">{theme === 'dark' ? <Moon size={19} strokeWidth={2} /> : <Sun size={20} strokeWidth={2} />}</span>
+          </button>
           <button ref={cartButtonRef} className="cart-trigger" onClick={onCart} aria-label={`Open shopping bag, ${count} items`}>
             <ShoppingBag size={18} strokeWidth={1.8} /><span className="cart-label">Bag</span><span key={count} className={`cart-count ${count > 0 ? 'cart-count-updated' : ''}`} aria-live="polite">{count}</span>
           </button>
@@ -243,7 +250,6 @@ function Hero() {
             <a className="button button-green" href="#catalog">Shop now <ArrowRight size={16} /></a>
             <a className="button button-ghost" href="#quiz"><Sparkles size={15} /> Take hair quiz</a>
           </div>
-          <div className="hero-trust"><ShieldCheck size={16} /><span>Made in small batches</span><span className="trust-separator" /><span>Thoughtfully sourced</span></div>
         </div>
         
       </div>
@@ -312,8 +318,18 @@ function ProductRating() {
   return <span className="product-rating" role="img" aria-label="Rated 5 out of 5 stars">{Array.from({ length: 5 }, (_, index) => <Star key={index} size={13} fill="currentColor" />)}<span>5.0</span></span>
 }
 
+const INITIAL_PRODUCTS = 6
+
 function ProductShowcase({ concern, onConcern, quantities, onQuantityChange, onAdd, onViewIngredients }) {
-  const visible = products.filter((item) => concern === 'all' || item.concerns.includes(concern))
+  const [expanded, setExpanded] = useState(false)
+  useEffect(() => { setExpanded(false) }, [concern])
+  const filtered = products.filter((item) => concern === 'all' || item.concerns.includes(concern))
+  const hiddenCount = Math.max(0, filtered.length - INITIAL_PRODUCTS)
+  const visible = expanded ? filtered : filtered.slice(0, INITIAL_PRODUCTS)
+  const toggleExpanded = () => {
+    if (expanded) document.getElementById('catalog')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    setExpanded(!expanded)
+  }
   return (
     <section className="catalog-section section-pad" id="catalog">
       <div className="page-width">
@@ -344,12 +360,19 @@ function ProductShowcase({ concern, onConcern, quantities, onQuantityChange, onA
                     </div>
                     <button className="button button-amber add-button" onClick={(event) => onAdd(item.id, quantity, event)}>Add to Cart <ArrowRight size={16} /></button>
                   </div>
-                  <div className="product-meta"><span><Check size={13} /> Carefully batch-made</span><span><Check size={13} /> Made in Pakistan</span></div>
                 </div>
               </article>
             )
           })}
         </div>
+        {hiddenCount > 0 && (
+          <div className="show-more-wrap">
+            <button type="button" className={`show-more ${expanded ? 'is-open' : ''}`} onClick={toggleExpanded} aria-expanded={expanded}>
+              <span>{expanded ? 'Show fewer products' : `View ${hiddenCount} more ${hiddenCount === 1 ? 'product' : 'products'}`}</span>
+              <span className="show-more-arrow"><ArrowDown size={18} strokeWidth={2} /></span>
+            </button>
+          </div>
+        )}
         <SerumTeaser />
       </div>
     </section>
@@ -396,7 +419,17 @@ function Testimonials() {
 
 
 function TrustStrip() {
-  return <section className="trust-strip" aria-label="Why HairGrow"><div className="page-width"><ul>{trustPoints.map(({ icon: Icon, title, text }) => <li key={title}><Icon size={24} strokeWidth={1.6} /><span><strong>{title}</strong><span>{text}</span></span></li>)}</ul></div></section>
+  const group = (hidden) => (
+    <div className="trust-group" aria-hidden={hidden || undefined}>
+      {[...trustPoints, ...trustPoints].map(({ icon: Icon, title, text }, index) => (
+        <div className="trust-card" key={`${title}-${index}`}>
+          <span className="trust-icon"><Icon size={22} strokeWidth={1.7} /></span>
+          <span className="trust-copy"><strong>{title}</strong><span>{text}</span></span>
+        </div>
+      ))}
+    </div>
+  )
+  return <section className="trust-strip trust-marquee" aria-label="Why HairGrow"><div className="trust-viewport"><div className="trust-track">{group(false)}{group(true)}</div></div></section>
 }
 
 function Ingredients() {
@@ -503,10 +536,6 @@ function Faq() {
   )
 }
 
-function AnnouncementBar() {
-  return <div className="announce"><span className="announce-dot" /><span><strong>Hand-crafted in small batches</strong> · Cash on delivery available · Order updates on WhatsApp</span></div>
-}
-
 const WAITLIST_URL = '' // optional: paste a form endpoint (e.g. Formspree) to receive sign-ups by email
 
 function Waitlist() {
@@ -544,14 +573,38 @@ function CtaBand() {
   return <section className="cta-band"><div className="page-width"><div><h2>Ready to start your ritual?</h2><p>Pick your bottle, check out on one page, and pay on delivery.</p></div><a className="button button-amber" href="#catalog">Shop the ritual <ArrowRight size={16} /></a></div></section>
 }
 
+// Replace these with your real profile links
+const socialLinks = [
+  { label: 'Instagram', href: 'https://instagram.com/hairgrow.pk', icon: Instagram },
+  { label: 'Facebook', href: 'https://facebook.com/hairgrow.pk', icon: Facebook },
+  { label: 'Twitter', href: 'https://twitter.com/hairgrow_pk', icon: Twitter },
+]
+
 function Footer({ onHelp }) {
   return (
     <footer className="site-footer">
       <div className="page-width footer-top">
-        <div className="footer-brand"><Logo /><p>Nature, made personal.<br />A little care, every day.</p></div>
-        <div className="footer-links"><div><span>Explore</span><a href="#catalog">Catalog</a><a href="#care">Care guide</a><a href="#faq">FAQ</a><a href="#stories">Your stories</a></div><div><span>Good to know</span><a href="#privacy" onClick={(e) => { e.preventDefault(); onHelp('Privacy Policy') }}>Privacy policy</a><a href="#terms" onClick={(e) => { e.preventDefault(); onHelp('Terms & Conditions') }}>Terms &amp; conditions</a><a href="mailto:hello@hairgrow.pk">Get in touch</a></div></div>
-        <div className="footer-contact"><span>Need a hand?</span><a href="https://wa.me/923001234567" target="_blank" rel="noreferrer">Message us on WhatsApp <ArrowRight size={14} /></a><small>We usually reply within a day.</small></div>
+        <div className="footer-brand">
+          <Logo />
+          <p>Nature, made personal.<br />A little care, every day.</p>
+          <div className="footer-social" aria-label="Follow HairGrow">
+            {socialLinks.map(({ label, href, icon: Icon }) => (
+              <a key={label} href={href} target="_blank" rel="noreferrer" aria-label={`HairGrow on ${label}`} title={label}><Icon size={18} strokeWidth={1.8} /></a>
+            ))}
+          </div>
+        </div>
+        <div className="footer-links">
+          <div><span>Explore</span><a href="#catalog">Catalog</a><a href="#care">Care guide</a><a href="#faq">FAQ</a><a href="#stories">Your stories</a></div>
+          <div><span>Good to know</span><a href="#privacy" onClick={(e) => { e.preventDefault(); onHelp('Privacy Policy') }}>Privacy policy</a><a href="#terms" onClick={(e) => { e.preventDefault(); onHelp('Terms & Conditions') }}>Terms &amp; conditions</a><a href="mailto:hello@hairgrow.pk">Get in touch</a></div>
+        </div>
+        <div className="footer-contact">
+          <span>Need a hand?</span>
+          <a className="footer-cta" href="https://wa.me/923001234567" target="_blank" rel="noreferrer"><MessageCircle size={17} /> Message us on WhatsApp <ArrowRight size={14} /></a>
+          <a className="footer-mail" href="mailto:hello@hairgrow.pk"><Mail size={15} /> hello@hairgrow.pk</a>
+          <small>We usually reply within a day.</small>
+        </div>
       </div>
+      <div className="page-width footer-pay"><span>Cash on delivery</span><span>Easypaisa</span><span>Made in Pakistan</span></div>
       <div className="page-width footer-bottom"><span>© 2026 HairGrow Organic. All rights reserved.</span><span>Made with care, in small batches <Leaf size={13} /></span></div>
     </footer>
   )
@@ -793,7 +846,7 @@ export default function App() {
 
   return (
     <>
-      <AnnouncementBar /><Header theme={theme} onTheme={() => setTheme(theme === 'dark' ? 'light' : 'dark')} count={itemCount} cartButtonRef={cartButtonRef} onCart={() => setCartOpen(true)} />
+      <Header theme={theme} onTheme={() => setTheme(theme === 'dark' ? 'light' : 'dark')} count={itemCount} cartButtonRef={cartButtonRef} onCart={() => setCartOpen(true)} />
       <main><Hero /><TrustStrip /><ProductShowcase concern={concern} onConcern={setConcern} quantities={productQuantities} onQuantityChange={(productId, quantity) => setProductQuantities((current) => ({ ...current, [productId]: quantity }))} onAdd={addToCart} onViewIngredients={setIngredientsProduct} /><Ingredients /><CareGuide /><HairQuiz onPick={setConcern} /><Testimonials /><Faq /><Waitlist /></main>
       <Footer onHelp={setInfoTitle} />
       <div className="cart-fly-layer" aria-hidden="true">{flyTokens.map((token) => <span key={token.id} className="cart-fly-token" style={{ left: token.x, top: token.y, '--fly-x': `${token.deltaX}px`, '--fly-y': `${token.deltaY}px` }} onAnimationEnd={() => setFlyTokens((current) => current.filter(({ id }) => id !== token.id))}>+{token.amount}</span>)}</div>
