@@ -824,7 +824,34 @@ export default function App() {
   const [theme, setTheme] = useState(() => { try { return localStorage.getItem('hairgrow-theme') === 'dark' ? 'dark' : 'light' } catch { return 'light' } })
   useEffect(() => { document.documentElement.dataset.theme = theme; try { localStorage.setItem('hairgrow-theme', theme) } catch {} }, [theme])
   const [concern, setConcern] = useState('all')
-  const [cart, setCart] = useState({})
+  const [cart, setCart] = useState(() => {
+    try {
+      const saved = localStorage.getItem('hairgrow-cart')
+      if (!saved) return {}
+      const parsed = JSON.parse(saved)
+      if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+        const valid = {}
+        for (const [key, qty] of Object.entries(parsed)) {
+          if (products.some((p) => p.id === key) && Number.isInteger(qty) && qty > 0) {
+            valid[key] = Math.min(99, qty)
+          }
+        }
+        return valid
+      }
+      return {}
+    } catch {
+      return {}
+    }
+  })
+  useEffect(() => {
+    try {
+      if (Object.keys(cart).length === 0) {
+        localStorage.removeItem('hairgrow-cart')
+      } else {
+        localStorage.setItem('hairgrow-cart', JSON.stringify(cart))
+      }
+    } catch {}
+  }, [cart])
   const [flyTokens, setFlyTokens] = useState([])
   const [productQuantities, setProductQuantities] = useState(() => Object.fromEntries(products.map(({ id }) => [id, 1])))
   const [cartOpen, setCartOpen] = useState(false)
@@ -858,7 +885,16 @@ export default function App() {
   }
 
   function changeCartQuantity(productId, quantity) {
-    setCart((current) => ({ ...current, [productId]: Math.max(0, Math.min(99, quantity)) }))
+    setCart((current) => {
+      const nextQty = Math.max(0, Math.min(99, quantity))
+      const next = { ...current }
+      if (nextQty === 0) {
+        delete next[productId]
+      } else {
+        next[productId] = nextQty
+      }
+      return next
+    })
   }
 
   function startCheckout() {
@@ -870,6 +906,7 @@ export default function App() {
     setOrder({ ...details, items, itemCount, subtotal, reference: createOrderReference(), createdAt: new Date().toISOString() })
     setOrderComplete(true)
     setCart({})
+    try { localStorage.removeItem('hairgrow-cart') } catch {}
     setProductQuantities(Object.fromEntries(products.map(({ id }) => [id, 1])))
   }
 
