@@ -1006,6 +1006,10 @@ export default function App() {
   const total = subtotal + shippingFee
 
   function addToCart(productId, amount, event) {
+    const currentQuantity = cart[productId] || 0
+    const addedAmount = Math.min(amount, 99 - currentQuantity)
+    if (addedAmount <= 0) return
+
     const source = event.currentTarget.getBoundingClientRect()
     const target = cartButtonRef.current?.getBoundingClientRect()
 
@@ -1013,7 +1017,7 @@ export default function App() {
       const id = nextFlyTokenId.current++
       setFlyTokens((current) => [...current, {
         id,
-        amount,
+        amount: addedAmount,
         x: source.left + source.width / 2,
         y: source.top + source.height / 2,
         deltaX: target.left + target.width / 2 - (source.left + source.width / 2),
@@ -1021,7 +1025,10 @@ export default function App() {
       }])
     }
 
-    setCart((current) => ({ ...current, [productId]: (current[productId] || 0) + amount }))
+    setCart((current) => ({
+      ...current,
+      [productId]: Math.min(99, (current[productId] || 0) + amount),
+    }))
   }
 
   function changeCartQuantity(productId, quantity) {

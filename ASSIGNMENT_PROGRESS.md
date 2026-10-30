@@ -191,3 +191,23 @@
   - **Pushed To:** `https://github.com/shagasif/hairgrow-storefront.git` (`origin/main`)
   - Linked the GitHub commit in Jira issue `HG-5` as a native web link (Link ID: `10004`).
   - Transitioned issue `HG-5` to `Done` (Transition ID: `41`).
+
+## 10. Task 4 — Real-World Development Using Multiple AI Agents
+
+- **Initial inspection:** Reviewed this progress file, `README.md`, the `hairgrow-code-review` skill, the application and package scripts, Git history, and remotes. The worktree was clean before Task 4; no partial Task 4 changes were present. Existing Jira tasks HG-1 through HG-5 were already complete.
+- **Specialist agents:** Created four workspace custom agents in `.github/agents/`:
+  - `bug-investigator.agent.md` — reproduce a real bug and report its root cause without editing.
+  - `developer.agent.md` — implement a verified, scoped fix.
+  - `qa.agent.md` — validate builds and customer-flow regressions without editing.
+  - `documentation.agent.md` — maintain accurate setup, usage, and workflow documentation.
+  - The main Copilot agent coordinated the work; no separate Coordinator Agent was created.
+- **Delegated work:** The Documentation Agent updated this README; the Developer Agent fixed the reproduced issue; the QA Agent independently reviewed the change and ran the production build. Checkout/cart review guidance was grounded in the existing `hairgrow-code-review` skill.
+- **Bug found and fixed:** Reproduced a cart quantity overflow using the product card: selecting 10 units and adding ten times reached 100, but a refresh restored only 99 because persisted cart hydration clamps each product to 99. Updated `addToCart` to cap each product at 99 and animate only the actual number added (no animation for a no-op at the cap).
+- **Verification:**
+  - `npm.cmd run build` passed (1580 modules transformed).
+  - Browser regression passed for repeated additions up to the 99-unit cap, truthful `+9` fly token on the final partial addition, no change or token beyond the cap, persistence across refresh, and the cart-drawer increment boundary.
+  - `package.json` has no test script, and there are no existing source test files.
+  - The first read-only Bug Investigator and QA explore-agent launches could not start because the runtime rejected the assigned model. The main agent directly reproduced the bug; a separately delegated QA Agent completed the independent source/build checks. No failed subagent work is reported as completed.
+- **README:** Updated project setup, current features and persistence, checkout and saved-items usage, project structure, limitations, and the four-specialist AI-agent workflow.
+- **Repository destination:** The user confirmed `shagasif/hairgrow-storefront`, which matches this worktree's `origin`.
+- **Git Commit & Push:** Pending final Task 4 commit and push.

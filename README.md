@@ -5,8 +5,10 @@ A polished, responsive single-page e-commerce storefront for **HairGrow**, a hom
 - Light and dark themes (soft off-white by default, remembered between visits)
 - Floating glass navigation bar
 - Catalog with concern filters, quantity controls and an ingredients viewer
-- Sliding cart drawer and a one-page checkout (Cash on Delivery or Easypaisa)
-- Order invoice and confirmation popup
+- Sliding cart drawer with saved cart contents, item quantities and shipping totals
+- Saved-products wishlist that persists between visits, with a shortcut to add items to the cart
+- One-page checkout (Cash on Delivery or Easypaisa), digital invoice and order confirmation
+- Optional WhatsApp order summary, prefilled for the customer to review and send
 - Hair-concern quiz, care guide, testimonials, FAQ and an early-access waitlist
 - Fully responsive, with accessible controls (keyboard focus, ARIA labels, reduced-motion support)
 
@@ -21,7 +23,7 @@ A polished, responsive single-page e-commerce storefront for **HairGrow**, a hom
 | Styling | Hand-written CSS (`src/styles.css` base + `src/theme.css` theme and polish). The Tailwind v4 Vite plugin is installed and available. |
 | Icons | `lucide-react` |
 | State | React hooks only (`useState`, `useEffect`, `useRef`). No backend and no state library. |
-| Persistence | `localStorage` stores only the chosen theme (`hairgrow-theme`) |
+| Persistence | `localStorage` stores the theme (`hairgrow-theme`), cart (`hairgrow-cart`) and saved product IDs (`hairgrow-wishlist`) |
 
 ---
 
@@ -40,9 +42,7 @@ npm run preview    # serve the production build locally
 
 `npm run build` produces a static site in `dist/`. Upload that folder to any static host (Netlify, Vercel, Cloudflare Pages, GitHub Pages, shared hosting).
 
-### Single-file HTML version
-
-For sharing or quick previews, the project can also be packed into one self-contained `hairgrow-storefront.html`: CSS and JS are inlined, and every image is embedded as base64 (about 3 MB). It opens with a double-click and needs no server. Only the Google Fonts load from the internet; without a connection the system fonts are used.
+There is no test script in `package.json`; `npm run build` is the available production-build check.
 
 ---
 
@@ -50,11 +50,24 @@ For sharing or quick previews, the project can also be packed into one self-cont
 
 ```
 hairgrow-storefront/
+├── .agents/
+│   └── skills/
+│       └── hairgrow-code-review/
+│           └── SKILL.md      Reusable customer-flow code-review checklist
+├── .github/
+│   └── agents/
+│       ├── bug-investigator.agent.md
+│       ├── developer.agent.md
+│       ├── documentation.agent.md
+│       └── qa.agent.md       Four focused specialist-agent definitions
 ├── AGENT.md              Original product and design brief
+├── ASSIGNMENT_PROGRESS.md Task and integration progress notes
 ├── README.md             This file
 ├── index.html            App shell (title, meta theme-color, fonts)
 ├── package.json
 ├── vite.config.js
+├── docs/
+│   └── skill-demonstration.md
 ├── public/
 │   └── img/              All photos and the logo (served as /img/...)
 └── src/
@@ -65,6 +78,19 @@ hairgrow-storefront/
 ```
 
 Load order matters: `theme.css` comes after `styles.css` and intentionally overrides it. When changing a style, check `theme.css` first, because later rules there win.
+
+---
+
+## AI-agent workflow
+
+The main agent coordinates the request: it checks the relevant project context, assigns a bounded task to the appropriate specialist when useful, and combines the results. The four specialists have distinct scopes:
+
+- **Bug Investigator** (`.github/agents/bug-investigator.agent.md`) reproduces and documents a genuine bug; it does not edit files.
+- **Developer** (`.github/agents/developer.agent.md`) implements a verified fix or explicitly scoped improvement and runs focused validation.
+- **QA** (`.github/agents/qa.agent.md`) independently validates builds and relevant customer flows; it does not edit files.
+- **Documentation Agent** (`.github/agents/documentation.agent.md`) maintains README setup, feature, usage, limitation and workflow guidance.
+
+For customer-flow reviews, investigations and changes, the reusable skill at `.agents/skills/hairgrow-code-review/SKILL.md` provides the review checklist. Specialists stay within their stated constraints; the main agent remains responsible for coordinating and reporting the complete result.
 
 ---
 
@@ -84,15 +110,21 @@ Floating on every page: the **Need help?** WhatsApp button.
 
 ## Checkout flow
 
-1. **Add to Cart** adds the chosen quantity (1 to 10) and animates toward the cart button.
-2. The **cart drawer** lets the buyer change quantities, remove items and see the subtotal.
+1. **Add to Cart** adds the chosen quantity and animates toward the cart button. Cart contents are saved in the browser and restored on a later visit.
+2. The **cart drawer** lets the buyer change quantities, remove items and see the subtotal, delivery charge and total. Standard delivery is **Rs. 200** below a **Rs. 2,000** subtotal; shipping is free at or above that threshold.
 3. **Proceed to express checkout** opens the one-page form:
    - Full name (required)
    - WhatsApp number (required). Digits, `+`, spaces, `(`, `)` and `-` are allowed, 9 to 18 characters.
    - Complete shipping address (required, at least 10 characters)
-   - Payment method: **Cash on Delivery** or **Easypaisa**
+   - Payment method: **Cash on Delivery** or **Easypaisa** (selection only; no online payment is processed)
+   - Itemized subtotal, delivery charge and order total
 4. **Place order** validates the form. Invalid fields get a visible red message, the first invalid field is focused, and a notice appears above the button. Errors clear as the buyer types.
-5. A valid order shows an **invoice** with an order reference in the format `HG-<date>-<random>`. **Complete Order** then opens the confirmation popup, which resets the cart.
+5. A valid order shows a digital **invoice** with an order reference in the format `HG-<date>-<random>`, customer and shipping details, and the final totals. The print action opens the browser print dialog, where the buyer can save the invoice as a PDF. The **Send via WhatsApp** link opens a prefilled order summary for the buyer to review and send.
+6. **Complete Order** opens the confirmation popup. The cart is cleared when the order is created; the confirmation also offers the WhatsApp summary action.
+
+## Saved items
+
+Tap the heart on a product to add it to the wishlist, then open **Saved Items** in the header to view saved products. The wishlist is stored in the browser and restored across visits. From the wishlist drawer, remove an item or use **Add to Bag** to add it to the cart without removing it from saved items.
 
 ---
 
@@ -164,7 +196,7 @@ Dark-mode values are defined under `:root[data-theme="dark"]`. The glass effect 
 
 ## Known limitations
 
-- **Orders are not sent anywhere yet.** The checkout validates, shows the invoice and confirmation, and resets the cart, but everything happens in the browser. To actually receive orders, connect the submit handler to a backend, a form service, email, or a WhatsApp Business API. The message "We will message you on WhatsApp shortly" is currently a promise the owner fulfills manually.
+- **There is no order backend or automatic order submission.** Checkout creates the invoice and confirmation in the browser and clears the cart. The optional WhatsApp action opens a prefilled message for the customer to review and send; it does not submit the order automatically. The confirmation's promise that the team will share tracking details must be fulfilled manually.
 - No online payment is processed. Easypaisa is a selectable option only.
 - Social links, the WhatsApp number and the email address are placeholders (see Customizing).
 - Privacy Policy and Terms open a short placeholder dialog; replace the text with real policies before launch.
