@@ -92,6 +92,8 @@ The main agent coordinates the request: it checks the relevant project context, 
 
 For customer-flow reviews, investigations and changes, the reusable skill at `.agents/skills/hairgrow-code-review/SKILL.md` provides the review checklist. Specialists stay within their stated constraints; the main agent remains responsible for coordinating and reporting the complete result.
 
+When a task requires a workspace custom agent, invoke its definition through VS Code `runSubagent`; a generic subagent or task request does not establish that the custom agent ran.
+
 ---
 
 ## Page sections (in order)

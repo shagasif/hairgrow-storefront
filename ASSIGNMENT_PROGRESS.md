@@ -214,3 +214,12 @@
   - **Commit SHA:** `427e9d0b54f101b601555964eb3e696eafefc001`
   - **Commit Message:** `feat(task4): add AI workflow and fix cart quantity overflow`
   - **Pushed To:** `https://github.com/shagasif/hairgrow-storefront.git` (`origin/main`), the repository the user confirmed.
+
+### Task 4 custom-agent execution follow-up
+
+- **Bug Investigator:** Already successfully invoked as the workspace custom Bug Investigator; it compared the original unbounded `addToCart` with the current 99-item cap and reported that the earlier bug is fixed. Not repeated in this follow-up.
+- **Developer:** Requested the named Developer Agent to review the cart cap and make only necessary corrections. Its response explicitly said it was not separately routed to a custom-agent runtime; it reported no findings or code changes and a successful production build. This is not counted as verified custom-agent execution.
+- **QA:** Requested the named QA Agent to independently test cart flows and build. Its response explicitly said the custom QA definition could not be invoked through VS Code `runSubagent`. It reported a successful build and source-level review, but its attempted live browser test was blocked; this is not counted as custom-agent execution or as a completed independent browser-flow test.
+- **Documentation:** Requested the named Documentation Agent to review the README workflow. Its response explicitly said it could not execute through `runSubagent` and only followed the definition generically. It made one README clarification that a generic task/subagent invocation does not prove a workspace custom agent ran; this is not counted as custom-agent execution.
+- **Invocation limitation:** Tool discovery in this session exposed the generic task/subagent interface but no `runSubagent` tool capable of loading a named `.github/agents/*.agent.md` definition. Attempts to route by the custom agent names did not provide verified custom-runtime execution for Developer, QA, or Documentation. Do not represent these attempts as successful custom-agent runs.
+- **Result:** The existing cart fix was not changed. The QA agent's build passed, but its requested independent live browser checks remain unverified in this follow-up. The README clarification is recorded separately; this status note records the actual invocation outcomes.
