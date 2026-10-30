@@ -321,7 +321,11 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
 .order-confirmation-overlay { position: fixed; z-index: 5; inset: 0; display: grid; place-items: center; padding: 18px; background: rgba(6, 7, 6, .78); backdrop-filter: blur(7px); animation: fade-in .18s ease both; }
 .order-confirmation-popup { width: min(420px, 100%); position: relative; padding: 40px 30px 29px; display: flex; flex-direction: column; align-items: center; border: 1px solid rgba(131, 189, 140, .3); background: var(--surface); box-shadow: 0 24px 75px rgba(0, 0, 0, .52); text-align: center; animation: reveal-up .24s ease both; }
 .order-confirmation-close { position: absolute; top: 12px; right: 12px; }
-.order-confirmation-mark { width: 54px; height: 54px; margin-bottom: 19px; display: grid; place-items: center; border: 1px solid rgba(131, 189, 140, .66); border-radius: 50%; background: rgba(131, 189, 140, .1); color: var(--green-bright); }
+.order-confirmation-mark { width: 54px; height: 54px; position: relative; margin-bottom: 19px; display: grid; place-items: center; border: 1px solid rgba(131, 189, 140, .66); border-radius: 50%; background: rgba(131, 189, 140, .1); color: var(--green-bright); animation: order-success-enter .55s cubic-bezier(.2, .8, .25, 1) both; }
+.order-confirmation-mark::before, .order-confirmation-mark::after { content: ""; position: absolute; inset: -9px; border-radius: 50%; pointer-events: none; opacity: 0; background: radial-gradient(circle at 50% 0, var(--amber) 0 2px, transparent 2.5px), radial-gradient(circle at 100% 50%, var(--green-bright) 0 2px, transparent 2.5px), radial-gradient(circle at 50% 100%, var(--amber) 0 2px, transparent 2.5px), radial-gradient(circle at 0 50%, var(--green-bright) 0 2px, transparent 2.5px); animation: order-success-burst .8s .18s ease-out both; }
+.order-confirmation-mark::after { transform: rotate(45deg) scale(.8); animation-delay: .27s; }
+.order-confirmation-mark svg circle { stroke-dasharray: 63; stroke-dashoffset: 63; animation: order-success-draw .48s .12s ease-out forwards; }
+.order-confirmation-mark svg path { stroke-dasharray: 24; stroke-dashoffset: 24; animation: order-success-draw .32s .42s ease-out forwards; }
 .order-confirmation-popup h2 { margin: 10px 0 8px; color: var(--white); font-family: var(--serif); font-size: 29px; font-weight: 500; }
 .order-confirmation-popup > p { max-width: 310px; margin: 0 0 22px; color: var(--text-soft); font-size: 11px; line-height: 1.8; }
 .order-confirmation-popup > p strong { color: var(--amber); font-size: 16px !important; }
@@ -494,6 +498,21 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+  .order-confirmation-mark, .order-confirmation-mark::before, .order-confirmation-mark::after, .order-confirmation-mark svg circle, .order-confirmation-mark svg path { animation: none !important; }
+  .order-confirmation-mark::before, .order-confirmation-mark::after { display: none; }
+  .order-confirmation-mark svg circle, .order-confirmation-mark svg path { stroke-dasharray: none; stroke-dashoffset: 0; }
+}
+
+@keyframes order-success-enter {
+  0% { transform: scale(.55); opacity: 0; }
+  68% { transform: scale(1.12); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+@keyframes order-success-draw { to { stroke-dashoffset: 0; } }
+@keyframes order-success-burst {
+  0% { transform: scale(.55) rotate(-18deg); opacity: 0; }
+  32% { opacity: .9; }
+  100% { transform: scale(1.12) rotate(18deg); opacity: 0; }
 }
 
 :where(.desktop-nav > a, .cart-label, .eyebrow, .hero-trust, .hero-note, .product-tag, .product-kicker, .price, .ingredients-trigger, .add-button, .footer-links > div > span, .footer-links a, .footer-contact > span, .footer-contact > a, .drawer-header h2 > span, .cart-item-bottom > strong, .shipping-note, .subtotal-row, .secure-note, .checkout-form > label, .payment-options legend, .payment-option strong, .payment-option small, .payment-side, .checkout-items > div, .checkout-items > div > strong, .checkout-total, .invoice-manifest-link, .order-confirmation-popup > p, .ingredient-list > li) { font-size: 14px !important; }

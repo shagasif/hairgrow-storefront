@@ -170,3 +170,19 @@
   - **Commit Message:** `feat(wishlist): implement saved products flow (HG-3)`
   - **Pushed To:** `https://github.com/shagasif/hairgrow-storefront.git` (`origin/main`)
   - Linked the GitHub commit in Jira issue `HG-3` as a native web link (Link ID: `10003`).
+
+## 9. Jira Task HG-5 — Add Order Completion Animation
+
+- **Selected Jira Task:** `HG-5` — **Add Order Completion Animation**
+- **Direct Jira URL:** [https://shagasif83.atlassian.net/browse/HG-5](https://shagasif83.atlassian.net/browse/HG-5)
+- **Task Requirements:** Show a success checkmark and subtle celebration effect after a successful order submission, preserve the existing checkout flow, and respect reduced-motion preferences.
+- **Implementation Details:**
+  - Animated the existing order-confirmation checkmark with a smooth entrance and drawn circle/check strokes.
+  - Added a subtle burst effect around the checkmark; it only appears with the existing post-submission confirmation dialog.
+  - Disabled the animations and burst for users who prefer reduced motion, while keeping the success icon visible.
+- **Quality & Verification:**
+  - `npm.cmd run build` completed successfully (1580 modules transformed).
+  - Browser-tested valid checkout, invoice display before confirmation, confirmation dialog timing, and the unchanged Done action.
+  - Verified animation behavior and dialog bounds on desktop and a 390px mobile viewport.
+  - Verified `prefers-reduced-motion: reduce` disables the animation and retains the checkmark.
+- **Git Commit & Jira Link:** Pending commit and Jira remote link.
