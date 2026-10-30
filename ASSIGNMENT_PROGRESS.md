@@ -210,4 +210,7 @@
   - The first read-only Bug Investigator and QA explore-agent launches could not start because the runtime rejected the assigned model. The main agent directly reproduced the bug; a separately delegated QA Agent completed the independent source/build checks. No failed subagent work is reported as completed.
 - **README:** Updated project setup, current features and persistence, checkout and saved-items usage, project structure, limitations, and the four-specialist AI-agent workflow.
 - **Repository destination:** The user confirmed `shagasif/hairgrow-storefront`, which matches this worktree's `origin`.
-- **Git Commit & Push:** Pending final Task 4 commit and push.
+- **Git Commit & Push:**
+  - **Commit SHA:** `427e9d0b54f101b601555964eb3e696eafefc001`
+  - **Commit Message:** `feat(task4): add AI workflow and fix cart quantity overflow`
+  - **Pushed To:** `https://github.com/shagasif/hairgrow-storefront.git` (`origin/main`), the repository the user confirmed.
