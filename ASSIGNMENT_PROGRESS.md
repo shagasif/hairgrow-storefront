@@ -44,9 +44,9 @@
 - **Verified Issue Retrieval:**
   - `HG-1`: Implement Order Status Tracking (`Done`)
   - `HG-2`: Smart Shipping Cost Calculator (`Done`)
-  - `HG-3`: Wishlist and Saved Products (`To Do`)
+  - `HG-3`: Wishlist and Saved Products (`Done`)
   - `HG-4`: Implement WhatsApp Order Summary (`Done`)
-  - `HG-5`: Add Order Completion Animation (`To Do`)
+  - `HG-5`: Add Order Completion Animation (`Done`)
 - **Full Issue Inspection:** Verified `HG-1`, `HG-2`, and `HG-4` descriptions and acceptance criteria.
 
 ---
@@ -190,3 +190,4 @@
   - **Commit Message:** `feat(checkout): animate order success confirmation (HG-5)`
   - **Pushed To:** `https://github.com/shagasif/hairgrow-storefront.git` (`origin/main`)
   - Linked the GitHub commit in Jira issue `HG-5` as a native web link (Link ID: `10004`).
+  - Transitioned issue `HG-5` to `Done` (Transition ID: `41`).
