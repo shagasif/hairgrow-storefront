@@ -494,6 +494,76 @@ body { font-family: "DM Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
   border-radius: 999px;
 }
 
+/* Smart Shipping Calculator & Threshold Banner */
+.shipping-threshold-banner {
+  background: var(--surface-2, rgba(255, 255, 255, 0.05));
+  border: 1px solid rgba(131, 189, 140, 0.25);
+  border-radius: 14px;
+  padding: 11px 15px;
+  margin-bottom: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  font-size: 13px;
+}
+.shipping-threshold-banner .free-shipping-unlocked {
+  color: var(--green-bright, #22c55e);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+}
+.shipping-threshold-banner .free-shipping-hint {
+  color: var(--text-soft, #a1a1aa);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.shipping-threshold-banner .free-shipping-hint strong {
+  color: var(--amber, #f59e0b);
+}
+.threshold-bar {
+  width: 100%;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 999px;
+  overflow: hidden;
+}
+.threshold-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #10b981, #22c55e);
+  border-radius: 999px;
+  transition: width 0.3s ease;
+}
+.free-tag {
+  color: #22c55e;
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 12px;
+  letter-spacing: 0.5px;
+}
+.checkout-summary-breakdown {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 12px 0 6px;
+  padding: 10px 14px;
+  background: var(--surface-2, rgba(255, 255, 255, 0.04));
+  border-radius: 12px;
+  font-size: 13px;
+}
+.checkout-summary-breakdown .breakdown-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: var(--text-soft, #a1a1aa);
+}
+.total-row {
+  border-top: 1px dashed rgba(255, 255, 255, 0.15);
+  padding-top: 8px;
+  margin-top: 4px;
+}
+
 /* scroll-reveal (progressive enhancement, no JS) */
 @keyframes rise-in { from { opacity: 0; transform: translateY(32px); } to { opacity: 1; transform: none; } }
 @supports (animation-timeline: view()) {

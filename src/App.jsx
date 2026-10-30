@@ -103,6 +103,14 @@ function formatPrice(amount) {
   return `Rs. ${amount.toLocaleString('en-PK')}`
 }
 
+export const FREE_SHIPPING_THRESHOLD = 2000
+export const STANDARD_SHIPPING_FEE = 200
+
+export function calculateShippingFee(subtotal) {
+  if (!subtotal || subtotal <= 0) return 0
+  return subtotal >= FREE_SHIPPING_THRESHOLD ? 0 : STANDARD_SHIPPING_FEE
+}
+
 function createOrderReference() {
   const dateCode = new Date().toISOString().slice(2, 10).replaceAll('-', '')
   const randomCode = Math.random().toString(36).slice(2, 6).toUpperCase()
@@ -116,6 +124,8 @@ function buildWhatsAppOrderMessage(order) {
     .join('\n')
 
   const paymentText = order.payment === 'cod' ? 'Cash on Delivery' : 'Easypaisa'
+  const shippingText = order.shippingFee === 0 ? 'FREE (Unlocked)' : formatPrice(order.shippingFee)
+  const grandTotal = order.total || order.subtotal
 
   return [
     '🌿 *HairGrow Order Summary*',
@@ -126,7 +136,9 @@ function buildWhatsAppOrderMessage(order) {
     '*Items Ordered:*',
     itemsList,
     '',
-    `*Total Amount:* ${formatPrice(order.subtotal)}`,
+    `*Subtotal:* ${formatPrice(order.subtotal)}`,
+    `*Delivery Charges:* ${shippingText}`,
+    `*Total Amount:* *${formatPrice(grandTotal)}*`,
     `*Payment Method:* ${paymentText}`,
     `*Shipping Address:* ${order.address}`,
     '',
@@ -641,7 +653,7 @@ function Footer({ onHelp }) {
   )
 }
 
-function CartDrawer({ open, items, itemCount, subtotal, onClose, onQuantityChange, onCheckout }) {
+function CartDrawer({ open, items, itemCount, subtotal, shippingFee, total, onClose, onQuantityChange, onCheckout }) {
   useEffect(() => {
     if (!open) return undefined
     const onKeyDown = (event) => { if (event.key === 'Escape') onClose() }
@@ -678,13 +690,29 @@ function CartDrawer({ open, items, itemCount, subtotal, onClose, onQuantityChang
             <div className="shipping-note"><Leaf size={16} /><span>Thoughtfully packed and sent with care.</span></div>
           </>}
         </div>
-        {itemCount > 0 && <div className="drawer-footer"><div className="subtotal-row"><span>Subtotal</span><strong>{formatPrice(subtotal)}</strong></div><span className="shipping-caption">Shipping calculated at checkout</span><button className="button button-green checkout-button" onClick={onCheckout}>Proceed to express checkout <ArrowRight size={16} /></button><div className="secure-note"><ShieldCheck size={14} /> Secure, simple, one-page checkout</div></div>}
+        {itemCount > 0 && (
+          <div className="drawer-footer">
+            <div className="shipping-threshold-banner">
+              {subtotal >= FREE_SHIPPING_THRESHOLD ? (
+                <span className="free-shipping-unlocked"><Sparkles size={14} /> Congratulations! You unlocked <strong>FREE Shipping</strong></span>
+              ) : (
+                <span className="free-shipping-hint"><Truck size={14} /> Add <strong>{formatPrice(FREE_SHIPPING_THRESHOLD - subtotal)}</strong> more for <strong>FREE Shipping</strong></span>
+              )}
+              <div className="threshold-bar"><div className="threshold-fill" style={{ width: `${Math.min(100, Math.round((subtotal / FREE_SHIPPING_THRESHOLD) * 100))}%` }} /></div>
+            </div>
+            <div className="subtotal-row"><span>Subtotal</span><strong>{formatPrice(subtotal)}</strong></div>
+            <div className="subtotal-row shipping-row"><span>Delivery charges</span><strong>{shippingFee === 0 ? <span className="free-tag">FREE</span> : formatPrice(shippingFee)}</strong></div>
+            <div className="subtotal-row total-row"><span>Estimated total</span><strong>{formatPrice(total)}</strong></div>
+            <button className="button button-green checkout-button" onClick={onCheckout}>Proceed to express checkout <ArrowRight size={16} /></button>
+            <div className="secure-note"><ShieldCheck size={14} /> Secure, simple, one-page checkout</div>
+          </div>
+        )}
       </aside>
     </div>
   )
 }
 
-function CheckoutModal({ open, items, itemCount, subtotal, order, onClose, onSubmit, complete, onReset }) {
+function CheckoutModal({ open, items, itemCount, subtotal, shippingFee, total, order, onClose, onSubmit, complete, onReset }) {
   const [payment, setPayment] = useState('cod')
   const [errors, setErrors] = useState({})
   const [orderConfirmationOpen, setOrderConfirmationOpen] = useState(false)
@@ -749,7 +777,12 @@ function CheckoutModal({ open, items, itemCount, subtotal, order, onClose, onSub
               <div className="invoice-table-head"><span>Item</span><span>Qty</span><span>Unit price</span><span>Amount</span></div>
               {order.items.map((item) => <div className="invoice-table-row" key={item.id}><div><strong>{item.name}</strong><small>{item.detail}</small></div><span>{item.quantity}</span><span>{formatPrice(item.price)}</span><strong>{formatPrice(item.price * item.quantity)}</strong></div>)}
             </div>
-            <div className="invoice-summary"><div><span>Payment method</span><strong>{order.payment === 'cod' ? 'Cash on Delivery' : 'Easypaisa'}</strong></div><div className="invoice-total"><span>Grand total</span><strong>{formatPrice(order.subtotal)}</strong></div></div>
+            <div className="invoice-summary">
+              <div><span>Subtotal</span><strong>{formatPrice(order.subtotal)}</strong></div>
+              <div><span>Delivery charges</span><strong>{order.shippingFee === 0 ? 'FREE' : formatPrice(order.shippingFee)}</strong></div>
+              <div><span>Payment method</span><strong>{order.payment === 'cod' ? 'Cash on Delivery' : 'Easypaisa'}</strong></div>
+              <div className="invoice-total"><span>Grand total</span><strong>{formatPrice(order.total || order.subtotal)}</strong></div>
+            </div>
             <div className="invoice-thanks"><span><Leaf size={15} /> Made with care, in small batches.</span><span>HairGrow Organic · hello@hairgrow.pk</span></div>
           </div>
           <div className="invoice-actions">
@@ -767,7 +800,11 @@ function CheckoutModal({ open, items, itemCount, subtotal, order, onClose, onSub
             <label className={errors.address ? 'field-error' : ''}>Complete shipping address<textarea name="address" autoComplete="street-address" rows="3" placeholder="House, street, area, city" aria-invalid={Boolean(errors.address)} />{errors.address && <small>{errors.address}</small>}</label>
             <fieldset className="payment-options"><legend>Payment method</legend><label className={`payment-option ${payment === 'cod' ? 'selected' : ''}`}><input type="radio" name="payment" value="cod" checked={payment === 'cod'} onChange={() => setPayment('cod')} /><span className="payment-radio" /><span><strong>Cash on Delivery</strong><small>Pay when your order arrives</small></span><span className="payment-side">COD</span></label><label className={`payment-option ${payment === 'wallet' ? 'selected' : ''}`}><input type="radio" name="payment" value="wallet" checked={payment === 'wallet'} onChange={() => setPayment('wallet')} /><span className="payment-radio" /><span><strong>Easypaisa</strong><small>Direct mobile wallet transfer</small></span><span className="wallet-mark">e</span></label></fieldset>
             <div className="checkout-items" aria-label="Order summary">{items.map((item) => <div key={item.id}><span>{item.quantity} × {item.name}</span><strong>{formatPrice(item.price * item.quantity)}</strong></div>)}</div>
-            <div className="checkout-total"><span>Order total <small>{itemCount} item{itemCount === 1 ? '' : 's'}</small></span><strong>{formatPrice(subtotal)}</strong></div>
+            <div className="checkout-summary-breakdown">
+              <div className="breakdown-row"><span>Subtotal</span><span>{formatPrice(subtotal)}</span></div>
+              <div className="breakdown-row"><span>Delivery charges</span><strong>{shippingFee === 0 ? <span className="free-tag">FREE</span> : formatPrice(shippingFee)}</strong></div>
+            </div>
+            <div className="checkout-total"><span>Order total <small>{itemCount} item{itemCount === 1 ? '' : 's'}</small></span><strong>{formatPrice(total)}</strong></div>
             {Object.keys(errors).length > 0 && <p className="form-error" role="alert">Please fix the highlighted fields to place your order.</p>}
             <button className="button button-green checkout-button" type="submit">Place order <ArrowRight size={16} /></button>
             <p className="form-note"><ShieldCheck size={14} /> Your details are only used to deliver your order.</p>
@@ -864,6 +901,8 @@ export default function App() {
   const items = products.filter(({ id }) => cart[id] > 0).map((item) => ({ ...item, quantity: cart[item.id] }))
   const itemCount = items.reduce((total, item) => total + item.quantity, 0)
   const subtotal = items.reduce((total, item) => total + item.price * item.quantity, 0)
+  const shippingFee = calculateShippingFee(subtotal)
+  const total = subtotal + shippingFee
 
   function addToCart(productId, amount, event) {
     const source = event.currentTarget.getBoundingClientRect()
@@ -903,7 +942,18 @@ export default function App() {
   }
 
   function finishOrder(details) {
-    setOrder({ ...details, items, itemCount, subtotal, reference: createOrderReference(), createdAt: new Date().toISOString() })
+    const finalShippingFee = calculateShippingFee(subtotal)
+    const finalTotal = subtotal + finalShippingFee
+    setOrder({
+      ...details,
+      items,
+      itemCount,
+      subtotal,
+      shippingFee: finalShippingFee,
+      total: finalTotal,
+      reference: createOrderReference(),
+      createdAt: new Date().toISOString(),
+    })
     setOrderComplete(true)
     setCart({})
     try { localStorage.removeItem('hairgrow-cart') } catch {}
@@ -924,8 +974,8 @@ export default function App() {
       <main><Hero /><TrustStrip /><ProductShowcase concern={concern} onConcern={setConcern} quantities={productQuantities} onQuantityChange={(productId, quantity) => setProductQuantities((current) => ({ ...current, [productId]: quantity }))} onAdd={addToCart} onViewIngredients={setIngredientsProduct} /><Ingredients /><CareGuide /><HairQuiz onPick={setConcern} /><Testimonials /><Faq /><Waitlist /></main>
       <Footer onHelp={setInfoTitle} />
       <div className="cart-fly-layer" aria-hidden="true">{flyTokens.map((token) => <span key={token.id} className="cart-fly-token" style={{ left: token.x, top: token.y, '--fly-x': `${token.deltaX}px`, '--fly-y': `${token.deltaY}px` }} onAnimationEnd={() => setFlyTokens((current) => current.filter(({ id }) => id !== token.id))}>+{token.amount}</span>)}</div>
-      <CartDrawer open={cartOpen} items={items} itemCount={itemCount} subtotal={subtotal} onClose={() => setCartOpen(false)} onQuantityChange={changeCartQuantity} onCheckout={startCheckout} />
-      <CheckoutModal open={checkoutOpen} items={items} itemCount={itemCount} subtotal={subtotal} order={order} onClose={() => setCheckoutOpen(false)} onSubmit={finishOrder} complete={orderComplete} onReset={resetOrder} />
+      <CartDrawer open={cartOpen} items={items} itemCount={itemCount} subtotal={subtotal} shippingFee={shippingFee} total={total} onClose={() => setCartOpen(false)} onQuantityChange={changeCartQuantity} onCheckout={startCheckout} />
+      <CheckoutModal open={checkoutOpen} items={items} itemCount={itemCount} subtotal={subtotal} shippingFee={shippingFee} total={total} order={order} onClose={() => setCheckoutOpen(false)} onSubmit={finishOrder} complete={orderComplete} onReset={resetOrder} />
       <IngredientsDialog item={ingredientsProduct} onClose={() => setIngredientsProduct(null)} />
       {infoTitle && <InfoDialog title={infoTitle} onClose={() => setInfoTitle('')} />}
       <a className="help-tab" href="https://wa.me/923001234567" target="_blank" rel="noreferrer" aria-label="Contact HairGrow on WhatsApp"><CircleHelp size={17} /><span>Need help?</span></a>
