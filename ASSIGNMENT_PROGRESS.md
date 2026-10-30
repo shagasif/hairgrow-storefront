@@ -165,4 +165,8 @@
   - `npm.cmd run build` completed successfully (1580 modules transformed).
   - Passed the browser flow for adding a favorite, opening and removing it from the wishlist, adding it to the cart, and verifying wishlist and cart persistence after refresh.
   - Confirmed the product-card heart also removes a saved item and clears the saved-items count.
-- **Git Commit & Jira Link:** Pending commit and Jira remote link.
+- **Git Commit & Jira Link:**
+  - **Commit SHA:** `ffc0e970c403bce6e3a4da1e1229d6dd51351b46`
+  - **Commit Message:** `feat(wishlist): implement saved products flow (HG-3)`
+  - **Pushed To:** `https://github.com/shagasif/hairgrow-storefront.git` (`origin/main`)
+  - Linked the GitHub commit in Jira issue `HG-3` as a native web link (Link ID: `10003`).
