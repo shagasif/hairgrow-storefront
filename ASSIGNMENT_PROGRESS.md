@@ -23,6 +23,7 @@
 - **Visibility:** Public
 - **Default Branch:** `main`
 - **Verified Commits:**
+  - `236525f` - *feat(shipping): implement smart shipping calculator and free shipping threshold (HG-2)* (Author: Bilal `<shagasif83@gmail.com>`)
   - `821e687` - *feat(cart): persist cart selections across page reloads (HG-1)* (Author: Bilal `<shagasif83@gmail.com>`)
   - `7203b5a` - *docs: update ASSIGNMENT_PROGRESS.md with Task 3 verified workflow details* (Author: Bilal `<shagasif83@gmail.com>`)
   - `d30df35` - *feat(checkout): implement WhatsApp order summary action (HG-4)* (Author: Bilal `<shagasif83@gmail.com>`)
@@ -30,7 +31,7 @@
   - `41ffa91` - *First commit* (Author: Bilal `<shagasif83@gmail.com>`)
 - **Tools Used for Verification:**
   - Git CLI (`git remote -v`, `git ls-remote origin`, `git log`, `git push origin main`)
-  - GitHub REST API (`https://api.github.com/repos/shagasif/hairgrow-storefront/commits/821e6877f9006be71608ca45c11ab203c6d599c5`)
+  - GitHub REST API (`https://api.github.com/repos/shagasif/hairgrow-storefront/commits/236525f4e797f1fad72fb48da3b31fcb45677348`)
 
 ---
 
@@ -42,11 +43,11 @@
 - **Project Name:** `Hairgrow-storefront` (Key: `HG`, ID: `10002`)
 - **Verified Issue Retrieval:**
   - `HG-1`: Implement Order Status Tracking (`Done`)
-  - `HG-2`: Smart Shipping Cost Calculator (`To Do`)
+  - `HG-2`: Smart Shipping Cost Calculator (`Done`)
   - `HG-3`: Wishlist and Saved Products (`To Do`)
   - `HG-4`: Implement WhatsApp Order Summary (`Done`)
   - `HG-5`: Add Order Completion Animation (`To Do`)
-- **Full Issue Inspection:** Verified `HG-1` and `HG-4` descriptions and acceptance criteria.
+- **Full Issue Inspection:** Verified `HG-1`, `HG-2`, and `HG-4` descriptions and acceptance criteria.
 
 ---
 
@@ -120,3 +121,32 @@
   - Linked the GitHub commit directly to Jira issue `HG-1` via `twg jira workitem link commit` (Link ID: `10001`).
   - Verified remote link on `HG-1` via Jira GraphQL/REST API (`remoteLinks` array).
   - Transitioned issue `HG-1` workflow state to `Done` (Transition ID: `41`).
+
+---
+
+## 7. Task 3 (Continuation) — Jira Task HG-2 Implementation (Smart Shipping Cost Calculator)
+
+- **Selected Jira Task:** `HG-2` — **Smart Shipping Cost Calculator**
+- **Direct Jira URL:** [https://shagasif83.atlassian.net/browse/HG-2](https://shagasif83.atlassian.net/browse/HG-2)
+- **Task Requirements:**
+  - *Description:* Calculate delivery charges automatically and provide free shipping when the cart reaches a configurable purchase threshold.
+  - *Acceptance Criteria (Done When):* The cart, checkout and invoice display the correct subtotal, shipping cost and final total.
+- **Implementation Details:**
+  - Created `calculateShippingFee(subtotal)` utility using configurable `FREE_SHIPPING_THRESHOLD = 2000` (PKR) and `STANDARD_SHIPPING_FEE = 200` (PKR).
+  - Integrated dynamic threshold progress bar (`.threshold-bar` and `.threshold-fill`) into `CartDrawer` showing amount remaining to unlock free delivery.
+  - Added itemized `Delivery charges` and `Estimated total` to `CartDrawer` footer.
+  - Enhanced `CheckoutModal` order breakdown to distinctly display subtotal, delivery charges (`FREE` or formatted price), and final order total.
+  - Updated `invoice-summary` to display subtotal, shipping fee, and grand total in digital invoice view.
+  - Integrated delivery charge information into WhatsApp order summary message.
+  - Added clean styling in `src/theme.css` for `.shipping-threshold-banner`, `.free-tag`, and `.checkout-summary-breakdown`.
+- **Quality & Code Review:**
+  - Audited against `hairgrow-code-review` Skill checklist: verified zero-subtotal edge cases, boundary math (clamping progress fill to 100%), WCAG AA color contrast on `.free-tag` and banners, and non-breaking compatibility with the entire checkout flow.
+  - Built cleanly using `npm run build` (1580 modules transformed, 0 errors).
+- **Git Commit & Push:**
+  - **Commit SHA:** `236525f4e797f1fad72fb48da3b31fcb45677348`
+  - **Commit Message:** `feat(shipping): implement smart shipping calculator and free shipping threshold (HG-2)`
+  - **Pushed To:** `https://github.com/shagasif/hairgrow-storefront.git` (`origin/main`)
+- **Jira Remote Link & Transition:**
+  - Linked the GitHub commit directly to Jira issue `HG-2` via `twg jira workitem link commit` (Link ID: `10002`).
+  - Verified remote link on `HG-2` via Jira GraphQL/REST API (`remoteLinks` array).
+  - Transitioned issue `HG-2` workflow state to `Done` (Transition ID: `41`).
