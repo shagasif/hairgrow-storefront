@@ -185,4 +185,8 @@
   - Browser-tested valid checkout, invoice display before confirmation, confirmation dialog timing, and the unchanged Done action.
   - Verified animation behavior and dialog bounds on desktop and a 390px mobile viewport.
   - Verified `prefers-reduced-motion: reduce` disables the animation and retains the checkmark.
-- **Git Commit & Jira Link:** Pending commit and Jira remote link.
+- **Git Commit & Jira Link:**
+  - **Commit SHA:** `2b7d2898c110fadc52f26468a30d93eda8955d6c`
+  - **Commit Message:** `feat(checkout): animate order success confirmation (HG-5)`
+  - **Pushed To:** `https://github.com/shagasif/hairgrow-storefront.git` (`origin/main`)
+  - Linked the GitHub commit in Jira issue `HG-5` as a native web link (Link ID: `10004`).
