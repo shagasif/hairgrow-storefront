@@ -109,6 +109,37 @@ function createOrderReference() {
   return `HG-${dateCode}-${randomCode}`
 }
 
+function buildWhatsAppOrderMessage(order) {
+  if (!order) return ''
+  const itemsList = (order.items || [])
+    .map((item) => `• ${item.quantity}× ${item.name} (${formatPrice(item.price * item.quantity)})`)
+    .join('\n')
+
+  const paymentText = order.payment === 'cod' ? 'Cash on Delivery' : 'Easypaisa'
+
+  return [
+    '🌿 *HairGrow Order Summary*',
+    `*Order Reference:* ${order.reference}`,
+    `*Customer:* ${order.name}`,
+    `*Phone:* ${order.phone}`,
+    '',
+    '*Items Ordered:*',
+    itemsList,
+    '',
+    `*Total Amount:* ${formatPrice(order.subtotal)}`,
+    `*Payment Method:* ${paymentText}`,
+    `*Shipping Address:* ${order.address}`,
+    '',
+    'Please confirm my order and share the parcel tracking number. Thank you!',
+  ].join('\n')
+}
+
+function getWhatsAppOrderUrl(order) {
+  if (!order) return '#'
+  const message = buildWhatsAppOrderMessage(order)
+  return `https://wa.me/923001234567?text=${encodeURIComponent(message)}`
+}
+
 const testimonials = [
   {
     quote: '14 din ke baad hair fall noticeably kam hua. The oil feels so light, and my roots feel stronger.',
@@ -721,7 +752,13 @@ function CheckoutModal({ open, items, itemCount, subtotal, order, onClose, onSub
             <div className="invoice-summary"><div><span>Payment method</span><strong>{order.payment === 'cod' ? 'Cash on Delivery' : 'Easypaisa'}</strong></div><div className="invoice-total"><span>Grand total</span><strong>{formatPrice(order.subtotal)}</strong></div></div>
             <div className="invoice-thanks"><span><Leaf size={15} /> Made with care, in small batches.</span><span>HairGrow Organic · hello@hairgrow.pk</span></div>
           </div>
-          <div className="invoice-actions"><button className="button button-green" onClick={() => window.print()}><ArrowDown size={16} /> Download Invoice PDF</button><button className="invoice-manifest-link" onClick={() => setOrderConfirmationOpen(true)}>Complete Order <ArrowRight size={15} /></button></div>
+          <div className="invoice-actions">
+            <button className="button button-green" onClick={() => window.print()}><ArrowDown size={16} /> Download Invoice PDF</button>
+            <a className="button button-whatsapp" href={getWhatsAppOrderUrl(order)} target="_blank" rel="noopener noreferrer" aria-label="Send order summary via WhatsApp">
+              <MessageCircle size={16} /> Send via WhatsApp <ArrowUpRight size={14} />
+            </a>
+            <button className="invoice-manifest-link" onClick={() => setOrderConfirmationOpen(true)}>Complete Order <ArrowRight size={15} /></button>
+          </div>
         </> : <>
           <div className="checkout-heading"><span className="eyebrow section-eyebrow">Just one more thing</span><h1 id="checkout-title">Express checkout</h1><p>Share a few details and we’ll take care of the rest.</p></div>
           <form className="checkout-form" onSubmit={handleSubmit} onInput={(event) => { const field = event.target.name; if (errors[field]) setErrors((current) => { const next = { ...current }; delete next[field]; return next }) }} noValidate>
@@ -737,7 +774,7 @@ function CheckoutModal({ open, items, itemCount, subtotal, order, onClose, onSub
           </form>
         </>}
       </section>
-      {orderConfirmationOpen && <div className="order-confirmation-overlay" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) dismissOrderConfirmation() }}><section className="order-confirmation-popup" role="alertdialog" aria-modal="true" aria-labelledby="order-confirmation-title"><button className="icon-button order-confirmation-close" onClick={dismissOrderConfirmation} aria-label="Dismiss order confirmation"><X size={19} /></button><span className="order-confirmation-mark"><CheckCircle2 size={27} /></span><span className="eyebrow section-eyebrow">Thank you for choosing HairGrow</span><h2 id="order-confirmation-title">Order Confirmed</h2><p>Your order <strong>{order.reference}</strong> is confirmed. Our team (Merchant) will contact you on WhatsApp very soon to share your parcel tracking number.</p></section></div>}
+      {orderConfirmationOpen && <div className="order-confirmation-overlay" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) dismissOrderConfirmation() }}><section className="order-confirmation-popup" role="alertdialog" aria-modal="true" aria-labelledby="order-confirmation-title"><button className="icon-button order-confirmation-close" onClick={dismissOrderConfirmation} aria-label="Dismiss order confirmation"><X size={19} /></button><span className="order-confirmation-mark"><CheckCircle2 size={27} /></span><span className="eyebrow section-eyebrow">Thank you for choosing HairGrow</span><h2 id="order-confirmation-title">Order Confirmed</h2><p>Your order <strong>{order.reference}</strong> is confirmed. Our team (Merchant) will contact you on WhatsApp very soon to share your parcel tracking number.</p><div className="order-confirmation-actions"><a className="button button-whatsapp" href={getWhatsAppOrderUrl(order)} target="_blank" rel="noopener noreferrer" aria-label="Send order summary via WhatsApp"><MessageCircle size={18} /> Send Order on WhatsApp <ArrowUpRight size={15} /></a><button className="button button-green" onClick={dismissOrderConfirmation}>Done <Check size={16} /></button></div></section></div>}
     </div>
   )
 }
