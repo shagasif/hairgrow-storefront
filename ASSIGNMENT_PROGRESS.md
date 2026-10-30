@@ -8,7 +8,7 @@
 ## 1. Environment & MCP Integrations Inspection
 
 | Integration / Service | Status | Configuration Location | Verification Details |
-| :--- | :--- | :--- | :--- |
+|---|---|---|---|
 | **GitHub** | **Verified (Read & Write Access)** | Local Git config (`.git/config`) & GitHub REST API | Remote origin identified (`https://github.com/shagasif/hairgrow-storefront.git`). Successfully pushed commits and verified remote refs (`main`). |
 | **Jira (Atlassian TWG)** | **Verified & Connected** | `~/.gemini/config/plugins/atlassian-twg-cli/` & `twg.exe` | Authenticated via OAuth (device auth) for `shagasif83@gmail.com` on `shagasif83.atlassian.net` (Cloud ID: `7581bc3d-2776-4411-9b12-bef173c98468`). Verified reading and updating tasks. |
 | **Antigravity MCP** | **No Active Custom Servers** | `~/.gemini/config/mcp_config.json` | Global config file inspected; currently empty (0 bytes). |
@@ -54,14 +54,14 @@
 ## 4. Task 2 — Reusable AI Skill Implementation
 
 - **Skill Name:** `hairgrow-code-review`
-- **Skill File Location:** [SKILL.md](file:///D:/Vibe-Coding/hairgrow-storefront/.agents/skills/hairgrow-code-review/SKILL.md)
+- **Skill File Location:** [SKILL.md](.agents/skills/hairgrow-code-review/SKILL.md)
 - **Skill Directory:** `.agents/skills/hairgrow-code-review/`
 - **Verification:**
   - Placed in `.agents/skills/hairgrow-code-review/` following Antigravity workspace-level progressive disclosure standards.
   - Configured with YAML frontmatter metadata (`name: hairgrow-code-review`, `description: ...`).
   - Tested and validated against workspace discovery rules.
 - **Feature Reviewed:** Interactive Shopping Bag & Express Checkout Flow in `src/App.jsx` (`CartDrawer`, `CheckoutModal`, and state operations).
-- **Demonstration Documentation:** Created [docs/skill-demonstration.md](file:///D:/Vibe-Coding/hairgrow-storefront/docs/skill-demonstration.md).
+- **Demonstration Documentation:** Created [skill-demonstration.md](docs/skill-demonstration.md).
 - **Actual Findings:**
   1. Identified missing `localStorage` cart persistence on page refresh (validating the necessity of Jira task `HG-1`).
   2. Identified missing minimum length boundary on customer name validation.
@@ -201,14 +201,14 @@
   - `qa.agent.md` — validate builds and customer-flow regressions without editing.
   - `documentation.agent.md` — maintain accurate setup, usage, and workflow documentation.
   - The main Copilot agent coordinated the work; no separate Coordinator Agent was created.
-- **Delegated work:** The Documentation Agent updated this README; the Developer Agent fixed the reproduced issue; the QA Agent independently reviewed the change and ran the production build. Checkout/cart review guidance was grounded in the existing `hairgrow-code-review` skill.
+- **Delegated work and attribution:** The README update, implementation, and source/build QA were initially performed by generic task subagents using role names, not verified invocations of the corresponding workspace custom-agent definitions. The custom Bug Investigator was later successfully invoked and verified the historical cause. The existing `hairgrow-code-review` skill guided the cart-flow investigation and review; it is a checklist, not an implementation agent.
 - **Bug found and fixed:** Reproduced a cart quantity overflow using the product card: selecting 10 units and adding ten times reached 100, but a refresh restored only 99 because persisted cart hydration clamps each product to 99. Updated `addToCart` to cap each product at 99 and animate only the actual number added (no animation for a no-op at the cap).
 - **Verification:**
   - `npm.cmd run build` passed (1580 modules transformed).
-  - Browser regression passed for repeated additions up to the 99-unit cap, truthful `+9` fly token on the final partial addition, no change or token beyond the cap, persistence across refresh, and the cart-drawer increment boundary.
   - `package.json` has no test script, and there are no existing source test files.
-  - The first read-only Bug Investigator and QA explore-agent launches could not start because the runtime rejected the assigned model. The main agent directly reproduced the bug; a separately delegated QA Agent completed the independent source/build checks. No failed subagent work is reported as completed.
-- **README:** Updated project setup, current features and persistence, checkout and saved-items usage, project structure, limitations, and the four-specialist AI-agent workflow.
+  - The coordinator's browser regression passed for repeated additions up to the 99-unit cap, truthful `+9` fly token on the final partial addition, no change or token beyond the cap, persistence across refresh, and the cart-drawer increment boundary.
+  - The first read-only Bug Investigator and QA explore-agent launches could not start because the runtime rejected the assigned model. The main agent directly reproduced the bug, while a separately delegated generic QA task reported source/build checks. No failed subagent work is reported as completed.
+- **README:** Updated project setup, current features and persistence, checkout and saved-items usage, project structure, limitations, the four-specialist AI-agent workflow, and verified Task 4 outcomes with custom-agent attribution distinguished from generic subagent work.
 - **Repository destination:** The user confirmed `shagasif/hairgrow-storefront`, which matches this worktree's `origin`.
 - **Git Commit & Push:**
   - **Commit SHA:** `427e9d0b54f101b601555964eb3e696eafefc001`
@@ -218,8 +218,8 @@
 ### Task 4 custom-agent execution follow-up
 
 - **Bug Investigator:** Already successfully invoked as the workspace custom Bug Investigator; it compared the original unbounded `addToCart` with the current 99-item cap and reported that the earlier bug is fixed. Not repeated in this follow-up.
-- **Developer:** Requested the named Developer Agent to review the cart cap and make only necessary corrections. Its response explicitly said it was not separately routed to a custom-agent runtime; it reported no findings or code changes and a successful production build. This is not counted as verified custom-agent execution.
-- **QA:** Requested the named QA Agent to independently test cart flows and build. Its response explicitly said the custom QA definition could not be invoked through VS Code `runSubagent`. It reported a successful build and source-level review, but its attempted live browser test was blocked; this is not counted as custom-agent execution or as a completed independent browser-flow test.
-- **Documentation:** Requested the named Documentation Agent to review the README workflow. Its response explicitly said it could not execute through `runSubagent` and only followed the definition generically. It made one README clarification that a generic task/subagent invocation does not prove a workspace custom agent ran; this is not counted as custom-agent execution.
+- **Developer:** A later request to the named Developer Agent returned that it was not separately routed to the custom-agent runtime; it reported no findings or code changes and a successful production build. This is not counted as verified custom-agent execution.
+- **QA:** A later request to the named QA Agent explicitly said the custom QA definition could not be invoked through VS Code `runSubagent`. It reported a successful build and source-level review, but its attempted live browser test was blocked. A subsequent cart QA run also passed `npm.cmd run build` and source inspection but could not connect to the local dev server, so its independent interactive add/limit/refresh/drawer/checkout checks remain incomplete. This is not counted as custom-agent execution or as a completed independent browser-flow test.
+- **Documentation:** A later named Documentation Agent request said it could not execute through `runSubagent` and only followed the definition generically. It made a README clarification that generic requests do not prove a workspace custom agent ran; this is not counted as custom-agent execution.
 - **Invocation limitation:** Tool discovery in this session exposed the generic task/subagent interface but no `runSubagent` tool capable of loading a named `.github/agents/*.agent.md` definition. Attempts to route by the custom agent names did not provide verified custom-runtime execution for Developer, QA, or Documentation. Do not represent these attempts as successful custom-agent runs.
-- **Result:** The existing cart fix was not changed. The QA agent's build passed, but its requested independent live browser checks remain unverified in this follow-up. The README clarification is recorded separately; this status note records the actual invocation outcomes.
+- **Result:** The existing cart fix was not changed during the custom-agent follow-up or later QA review. Build checks passed, and the earlier coordinator-run browser regression passed, but the later independent QA browser checks remain incomplete due to local-server connectivity. The README now distinguishes these test runs and the actual agent routing.

@@ -88,11 +88,19 @@ The main agent coordinates the request: it checks the relevant project context, 
 - **Bug Investigator** (`.github/agents/bug-investigator.agent.md`) reproduces and documents a genuine bug; it does not edit files.
 - **Developer** (`.github/agents/developer.agent.md`) implements a verified fix or explicitly scoped improvement and runs focused validation.
 - **QA** (`.github/agents/qa.agent.md`) independently validates builds and relevant customer flows; it does not edit files.
-- **Documentation Agent** (`.github/agents/documentation.agent.md`) maintains README setup, feature, usage, limitation and workflow guidance.
+- **Documentation Agent** (`.github/agents/documentation.agent.md`) maintains README setup, feature, usage, limitation, and workflow guidance.
 
-For customer-flow reviews, investigations and changes, the reusable skill at `.agents/skills/hairgrow-code-review/SKILL.md` provides the review checklist. Specialists stay within their stated constraints; the main agent remains responsible for coordinating and reporting the complete result.
+For customer-flow reviews, investigations and changes, the reusable skill at `.agents/skills/hairgrow-code-review/SKILL.md` provides an evidence-based checklist for state flow, limits, persistence, validation, accessibility and regression risks. During Task 4, the coordinator loaded this skill while tracing and reviewing the cart-cap issue; it guided the investigation and review, rather than implementing a feature itself. Specialists stay within their stated constraints; the main agent remains responsible for coordinating and reporting the complete result.
 
-When a task requires a workspace custom agent, invoke its definition through VS Code `runSubagent`; a generic subagent or task request does not establish that the custom agent ran.
+To use a workspace custom agent, select its name from VS Code's agent picker and verify that the invocation is routed to that definition. A generic subagent/task request, or a matching agent name alone, does not establish that the custom agent ran. If custom-agent routing is unavailable, report the limitation rather than attributing generic work to the custom agent.
+
+### Task 4 workflow and verified outcomes
+
+Task 4 exposed a cart-cap bug: choosing 10 units and adding ten times could put 100 units in the cart, although cart restoration capped the saved quantity at 99. The implementation now caps additions at 99 and animates only the quantity actually added. The coordinator reproduced the issue in the browser, verified the fix and persistence, and ran the production build.
+
+The Bug Investigator was later confirmed to have run as a workspace custom agent and verified the historical root cause. The Developer, QA, and Documentation workspace definitions were created, but the implementation, QA, and README work initially attributed to those roles was performed by generic task subagents, not verified runs of those custom agents. Later requests naming those agents explicitly reported that they were not routed through the custom-agent runtime. Do not count those requests as custom-agent executions.
+
+The reusable HairGrow Code Review Skill guided the cart-flow review. A subsequent QA pass ran `npm.cmd run build` successfully and reviewed the source, but could not complete live browser checks because the local Vite server was unreachable from that test environment. The earlier coordinator-run browser regression passed; it is distinct from that incomplete QA run. There is no automated test script or existing source test suite.
 
 ---
 
