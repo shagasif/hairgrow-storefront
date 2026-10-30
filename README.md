@@ -23,7 +23,7 @@ A polished, responsive single-page e-commerce storefront for **HairGrow**, a hom
 | Styling | Hand-written CSS (`src/styles.css` base + `src/theme.css` theme and polish). The Tailwind v4 Vite plugin is installed and available. |
 | Icons | `lucide-react` |
 | State | React hooks only (`useState`, `useEffect`, `useRef`). No backend and no state library. |
-| Persistence | `localStorage` stores the theme (`hairgrow-theme`), cart (`hairgrow-cart`) and saved product IDs (`hairgrow-wishlist`) |
+| Persistence | `localStorage` stores the theme (`hairgrow-theme`), cart (`hairgrow-cart`), saved product IDs (`hairgrow-wishlist`), and browser-local orders (`hairgrow-orders`) |
 
 ---
 
@@ -41,6 +41,8 @@ npm run preview    # serve the production build locally
 ### Deploying
 
 `npm run build` produces a static site in `dist/`. Upload that folder to any static host (Netlify, Vercel, Cloudflare Pages, GitHub Pages, shared hosting).
+
+Track Order opens as a modal over the landing page.
 
 There is no test script in `package.json`; `npm run build` is the available production-build check.
 
@@ -106,7 +108,7 @@ The reusable HairGrow Code Review Skill guided the cart-flow review. A subsequen
 
 ## Page sections (in order)
 
-1. **Header**: floating glass nav (Catalog, Ingredients, Care guide, Hair quiz, Stories, Order now), circular day/night toggle, cart button with item count
+1. **Header**: floating glass nav (Catalog, Ingredients, Care guide, Hair quiz, Stories, Track Order), circular day/night toggle, cart button with item count
 2. **Hero**: full-width single-tone photo, headline, Shop now and Take hair quiz buttons
 3. **Trust strip**: slim, continuously scrolling ticker (pauses on hover)
 4. **Catalog**: concern filters and product cards
@@ -135,6 +137,12 @@ Floating on every page: the **Need help?** WhatsApp button.
 ## Saved items
 
 Tap the heart on a product to add it to the wishlist, then open **Saved Items** in the header to view saved products. The wishlist is stored in the browser and restored across visits. From the wishlist drawer, remove an item or use **Add to Bag** to add it to the cart without removing it from saved items.
+
+## Track an order
+
+Choose **Track Order** in the navbar, then enter the Order ID from the invoice and the checkout phone number. The modal verifies both details against the saved order and displays its saved status across the Pending, Confirmed, Packed, Dispatched, and Delivered stages.
+
+Orders and their current status are stored in the checkout browser only. Only orders placed after this feature is deployed are saved. There is no order-tracking backend or merchant status-update system yet, so tracking is limited to the same browser and new orders remain Pending until backend status updates are implemented.
 
 ---
 
@@ -207,6 +215,7 @@ Dark-mode values are defined under `:root[data-theme="dark"]`. The glass effect 
 ## Known limitations
 
 - **There is no order backend or automatic order submission.** Checkout creates the invoice and confirmation in the browser and clears the cart. The optional WhatsApp action opens a prefilled message for the customer to review and send; it does not submit the order automatically. The confirmation's promise that the team will share tracking details must be fulfilled manually.
+- Order tracking currently reads orders saved in the same browser's `localStorage`. It cannot verify orders from another device or receive merchant updates; orders placed before this feature was deployed are not available, and new orders remain Pending until a backend is added.
 - No online payment is processed. Easypaisa is a selectable option only.
 - Social links, the WhatsApp number and the email address are placeholders (see Customizing).
 - Privacy Policy and Terms open a short placeholder dialog; replace the text with real policies before launch.

@@ -153,6 +153,129 @@ function getWhatsAppOrderUrl(order) {
   return `https://wa.me/923001234567?text=${encodeURIComponent(message)}`
 }
 
+const ORDER_STORAGE_KEY = 'hairgrow-orders'
+const TRACKING_STAGES = ['Pending', 'Confirmed', 'Packed', 'Dispatched', 'Delivered']
+
+function readSavedOrders() {
+  const saved = localStorage.getItem(ORDER_STORAGE_KEY)
+  if (!saved) return []
+  const parsed = JSON.parse(saved)
+  if (!Array.isArray(parsed)) throw new Error('Saved orders are not in the expected format.')
+  return parsed
+}
+
+function normalizePhone(phone) {
+  return String(phone || '').replace(/\D/g, '')
+}
+
+function TrackOrderModal({ open, onClose }) {
+  const [trackedOrder, setTrackedOrder] = useState(null)
+  const [error, setError] = useState('')
+
+  useEffect(() => {
+    if (!open) {
+      setTrackedOrder(null)
+      setError('')
+      return undefined
+    }
+
+    const handleKeyDown = (event) => {
+      if (event.key === 'Escape') onClose()
+    }
+    document.body.classList.add('drawer-open')
+    window.addEventListener('keydown', handleKeyDown)
+    return () => {
+      document.body.classList.remove('drawer-open')
+      window.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [open, onClose])
+
+  function handleSubmit(event) {
+    event.preventDefault()
+    const form = new FormData(event.currentTarget)
+    const reference = String(form.get('reference') || '').trim().toUpperCase()
+    const phone = normalizePhone(form.get('phone'))
+
+    if (!reference || !phone) {
+      setTrackedOrder(null)
+      setError('Enter your Order ID and the phone number used at checkout.')
+      return
+    }
+
+    try {
+      const match = readSavedOrders().find((savedOrder) =>
+        typeof savedOrder?.reference === 'string' &&
+        savedOrder.reference.toUpperCase() === reference &&
+        normalizePhone(savedOrder.phone) === phone
+      )
+
+      if (!match) {
+        setTrackedOrder(null)
+        setError('We could not find an order matching those details in this browser.')
+        return
+      }
+
+      if (!TRACKING_STAGES.includes(match.status)) {
+        setTrackedOrder(null)
+        setError('This order’s saved status is unavailable. Please contact HairGrow for help.')
+        return
+      }
+
+      setTrackedOrder(match)
+      setError('')
+    } catch {
+      setTrackedOrder(null)
+      setError('Saved orders could not be accessed in this browser. Please contact HairGrow for help.')
+    }
+  }
+
+  const currentStage = trackedOrder ? TRACKING_STAGES.indexOf(trackedOrder.status) : -1
+
+  if (!open) return null
+
+  return (
+    <div className="tracking-overlay" role="presentation" onClick={(event) => { if (event.target === event.currentTarget) onClose() }}>
+      <section className="tracking-dialog" role="dialog" aria-modal="true" aria-labelledby="tracking-title">
+        <button className="icon-button tracking-close" type="button" onClick={onClose} aria-label="Close order tracking"><X size={20} /></button>
+        <span className="eyebrow section-eyebrow">Order updates</span>
+        <h2 id="tracking-title">Track your order</h2>
+        <p className="tracking-intro">Enter the Order ID from your invoice and the phone number you used at checkout.</p>
+        <form className="tracking-form" onSubmit={handleSubmit} noValidate>
+          <label htmlFor="tracking-reference">Order ID</label>
+          <input id="tracking-reference" name="reference" type="text" autoComplete="off" placeholder="e.g. HG-260101-ABCD" />
+          <label htmlFor="tracking-phone">Checkout phone number</label>
+          <input id="tracking-phone" name="phone" type="tel" autoComplete="tel" placeholder="+92 300 1234567" />
+          <button className="button button-green" type="submit">Track Order <ArrowRight size={16} /></button>
+        </form>
+        {error && <p className="tracking-message" role="alert">{error}</p>}
+        <p className="tracking-storage-note">Tracking is available in the browser used to place the order.</p>
+        {trackedOrder && (
+          <section className="tracking-result" aria-live="polite" aria-labelledby="tracking-result-title">
+            <div className="tracking-result-heading">
+              <div>
+                <span className="tracking-result-label">Order status</span>
+                <h3 id="tracking-result-title">{trackedOrder.status}</h3>
+              </div>
+              <span className="tracking-reference">{trackedOrder.reference}</span>
+            </div>
+            <ol className="tracking-stages" aria-label="Order progress">
+              {TRACKING_STAGES.map((stage, index) => {
+                const state = index < currentStage ? 'complete' : index === currentStage ? 'current' : 'upcoming'
+                return (
+                  <li key={stage} className={`tracking-stage tracking-stage-${state}`} aria-current={state === 'current' ? 'step' : undefined}>
+                    <span className="tracking-stage-marker">{state === 'complete' ? <Check size={15} aria-hidden="true" /> : index + 1}</span>
+                    <span className="tracking-stage-label">{stage}</span>
+                  </li>
+                )
+              })}
+            </ol>
+          </section>
+        )}
+      </section>
+    </div>
+  )
+}
+
 const testimonials = [
   {
     quote: '14 din ke baad hair fall noticeably kam hua. The oil feels so light, and my roots feel stronger.',
@@ -246,7 +369,7 @@ function Logo({ onClick }) {
   )
 }
 
-function Header({ count, onCart, cartButtonRef, wishlistCount = 0, onWishlist, theme, onTheme }) {
+function Header({ count, onCart, cartButtonRef, wishlistCount = 0, onWishlist, theme, onTheme, onTrackOrder }) {
   const [menuOpen, setMenuOpen] = useState(false)
 
   function closeMenu() {
@@ -263,7 +386,7 @@ function Header({ count, onCart, cartButtonRef, wishlistCount = 0, onWishlist, t
           <a href="#care" onClick={closeMenu}>Care guide</a>
           <a href="#quiz" onClick={closeMenu}>Hair quiz</a>
           <a href="#stories" onClick={closeMenu}>Stories</a>
-          <a className="nav-order" href="#catalog" onClick={closeMenu}>Order now <ArrowRight size={14} /></a>
+          <a className="nav-order" href="#track-order" onClick={(event) => { event.preventDefault(); closeMenu(); onTrackOrder() }}>Track Order <Truck size={14} /></a>
         </nav>
         <div className="header-actions">
           <button className="theme-switch" role="switch" aria-checked={theme === 'dark'} onClick={onTheme} aria-label={theme === 'dark' ? 'Switch to day mode' : 'Switch to night mode'}>
@@ -658,7 +781,7 @@ function Footer({ onHelp }) {
         </div>
         <div className="footer-contact">
           <span>Need a hand?</span>
-          <a className="footer-cta" href="https://wa.me/923001234567" target="_blank" rel="noreferrer"><MessageCircle size={17} /> Message us on WhatsApp <ArrowRight size={14} /></a>
+          <a className="footer-cta" href="https://wa.me/923001234567" target="_blank" rel="noopener noreferrer"><MessageCircle size={17} /> Message us on WhatsApp <ArrowRight size={14} /></a>
           <a className="footer-mail" href="mailto:hello@hairgrow.pk"><Mail size={15} /> hello@hairgrow.pk</a>
           <small>We usually reply within a day.</small>
         </div>
@@ -789,7 +912,7 @@ function CartDrawer({ open, items, itemCount, subtotal, shippingFee, total, onCl
   )
 }
 
-function CheckoutModal({ open, items, itemCount, subtotal, shippingFee, total, order, onClose, onSubmit, complete, onReset }) {
+function CheckoutModal({ open, items, itemCount, subtotal, shippingFee, total, order, trackingSaved, onClose, onSubmit, complete, onReset }) {
   const [payment, setPayment] = useState('cod')
   const [errors, setErrors] = useState({})
   const [orderConfirmationOpen, setOrderConfirmationOpen] = useState(false)
@@ -842,7 +965,7 @@ function CheckoutModal({ open, items, itemCount, subtotal, shippingFee, total, o
           <div className="invoice-paper">
             <div className="invoice-brand"><Logo /><span className="invoice-label">Digital invoice</span></div>
             <div className="invoice-heading">
-              <div><span className="invoice-kicker">Order confirmed</span><h1 id="checkout-title">Your invoice</h1><p>Thank you, {order.name.split(' ')[0]}. Your order is confirmed.</p></div>
+              <div><span className="invoice-kicker">Order received</span><h1 id="checkout-title">Your invoice</h1><p>Thank you, {order.name.split(' ')[0]}. Your order is pending confirmation.</p></div>
               <div className="invoice-reference"><span>Order reference</span><strong>{order.reference}</strong><span>{new Intl.DateTimeFormat('en-PK', { dateStyle: 'long' }).format(new Date(order.createdAt))}</span></div>
             </div>
             <div className="invoice-details">
@@ -869,6 +992,7 @@ function CheckoutModal({ open, items, itemCount, subtotal, shippingFee, total, o
             </a>
             <button className="invoice-manifest-link" onClick={() => setOrderConfirmationOpen(true)}>Complete Order <ArrowRight size={15} /></button>
           </div>
+          {!trackingSaved && <p className="tracking-save-warning" role="status">Your order was placed, but could not be saved in this browser for tracking. Please keep your invoice and contact HairGrow for updates.</p>}
         </> : <>
           <div className="checkout-heading"><span className="eyebrow section-eyebrow">Just one more thing</span><h1 id="checkout-title">Express checkout</h1><p>Share a few details and we’ll take care of the rest.</p></div>
           <form className="checkout-form" onSubmit={handleSubmit} onInput={(event) => { const field = event.target.name; if (errors[field]) setErrors((current) => { const next = { ...current }; delete next[field]; return next }) }} noValidate>
@@ -888,7 +1012,7 @@ function CheckoutModal({ open, items, itemCount, subtotal, shippingFee, total, o
           </form>
         </>}
       </section>
-      {orderConfirmationOpen && <div className="order-confirmation-overlay" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) dismissOrderConfirmation() }}><section className="order-confirmation-popup" role="alertdialog" aria-modal="true" aria-labelledby="order-confirmation-title"><button className="icon-button order-confirmation-close" onClick={dismissOrderConfirmation} aria-label="Dismiss order confirmation"><X size={19} /></button><span className="order-confirmation-mark"><CheckCircle2 size={27} /></span><span className="eyebrow section-eyebrow">Thank you for choosing HairGrow</span><h2 id="order-confirmation-title">Order Confirmed</h2><p>Your order <strong>{order.reference}</strong> is confirmed. Our team (Merchant) will contact you on WhatsApp very soon to share your parcel tracking number.</p><div className="order-confirmation-actions"><a className="button button-whatsapp" href={getWhatsAppOrderUrl(order)} target="_blank" rel="noopener noreferrer" aria-label="Send order summary via WhatsApp"><MessageCircle size={18} /> Send Order on WhatsApp <ArrowUpRight size={15} /></a><button className="button button-green" onClick={dismissOrderConfirmation}>Done <Check size={16} /></button></div></section></div>}
+      {orderConfirmationOpen && <div className="order-confirmation-overlay" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) dismissOrderConfirmation() }}><section className="order-confirmation-popup" role="alertdialog" aria-modal="true" aria-labelledby="order-confirmation-title"><button className="icon-button order-confirmation-close" onClick={dismissOrderConfirmation} aria-label="Dismiss order confirmation"><X size={19} /></button><span className="order-confirmation-mark"><CheckCircle2 size={27} /></span><span className="eyebrow section-eyebrow">Thank you for choosing HairGrow</span><h2 id="order-confirmation-title">Order received</h2><p>Your order <strong>{order.reference}</strong> is pending confirmation. Our team will contact you on WhatsApp with updates.</p><div className="order-confirmation-actions"><a className="button button-whatsapp" href={getWhatsAppOrderUrl(order)} target="_blank" rel="noopener noreferrer" aria-label="Send order summary via WhatsApp"><MessageCircle size={18} /> Send Order on WhatsApp <ArrowUpRight size={15} /></a><button className="button button-green" onClick={dismissOrderConfirmation}>Done <Check size={16} /></button></div></section></div>}
     </div>
   )
 }
@@ -995,6 +1119,8 @@ export default function App() {
   const [checkoutOpen, setCheckoutOpen] = useState(false)
   const [orderComplete, setOrderComplete] = useState(false)
   const [order, setOrder] = useState(null)
+  const [trackingSaved, setTrackingSaved] = useState(true)
+  const [trackingOpen, setTrackingOpen] = useState(false)
   const [infoTitle, setInfoTitle] = useState('')
   const [ingredientsProduct, setIngredientsProduct] = useState(null)
 
@@ -1058,7 +1184,7 @@ export default function App() {
   function finishOrder(details) {
     const finalShippingFee = calculateShippingFee(subtotal)
     const finalTotal = subtotal + finalShippingFee
-    setOrder({
+    const newOrder = {
       ...details,
       items,
       itemCount,
@@ -1067,7 +1193,21 @@ export default function App() {
       total: finalTotal,
       reference: createOrderReference(),
       createdAt: new Date().toISOString(),
-    })
+      status: 'Pending',
+    }
+    let orderWasSaved = false
+    try {
+      const savedOrders = readSavedOrders()
+      localStorage.setItem(ORDER_STORAGE_KEY, JSON.stringify([
+        ...savedOrders.filter((savedOrder) => savedOrder?.reference !== newOrder.reference),
+        newOrder,
+      ]))
+      orderWasSaved = true
+    } catch {
+      orderWasSaved = false
+    }
+    setOrder(newOrder)
+    setTrackingSaved(orderWasSaved)
     setOrderComplete(true)
     setCart({})
     try { localStorage.removeItem('hairgrow-cart') } catch {}
@@ -1084,16 +1224,17 @@ export default function App() {
 
   return (
     <>
-      <Header theme={theme} onTheme={() => setTheme(theme === 'dark' ? 'light' : 'dark')} count={itemCount} cartButtonRef={cartButtonRef} onCart={() => { setWishlistOpen(false); setCartOpen(true) }} wishlistCount={wishlist.length} onWishlist={() => { setCartOpen(false); setWishlistOpen(true) }} />
+      <Header theme={theme} onTheme={() => setTheme(theme === 'dark' ? 'light' : 'dark')} count={itemCount} cartButtonRef={cartButtonRef} onCart={() => { setWishlistOpen(false); setCartOpen(true) }} wishlistCount={wishlist.length} onWishlist={() => { setCartOpen(false); setWishlistOpen(true) }} onTrackOrder={() => setTrackingOpen(true)} />
       <main><Hero /><TrustStrip /><ProductShowcase concern={concern} onConcern={setConcern} quantities={productQuantities} onQuantityChange={(productId, quantity) => setProductQuantities((current) => ({ ...current, [productId]: quantity }))} onAdd={addToCart} onViewIngredients={setIngredientsProduct} wishlist={wishlist} onToggleWishlist={toggleWishlist} /><Ingredients /><CareGuide /><HairQuiz onPick={setConcern} /><Testimonials /><Faq /><Waitlist /></main>
       <Footer onHelp={setInfoTitle} />
       <div className="cart-fly-layer" aria-hidden="true">{flyTokens.map((token) => <span key={token.id} className="cart-fly-token" style={{ left: token.x, top: token.y, '--fly-x': `${token.deltaX}px`, '--fly-y': `${token.deltaY}px` }} onAnimationEnd={() => setFlyTokens((current) => current.filter(({ id }) => id !== token.id))}>+{token.amount}</span>)}</div>
       <WishlistDrawer open={wishlistOpen} items={wishlistItems} onClose={() => setWishlistOpen(false)} onRemove={toggleWishlist} onAddToCart={(productId, event) => addToCart(productId, 1, event)} />
       <CartDrawer open={cartOpen} items={items} itemCount={itemCount} subtotal={subtotal} shippingFee={shippingFee} total={total} onClose={() => setCartOpen(false)} onQuantityChange={changeCartQuantity} onCheckout={startCheckout} />
-      <CheckoutModal open={checkoutOpen} items={items} itemCount={itemCount} subtotal={subtotal} shippingFee={shippingFee} total={total} order={order} onClose={() => setCheckoutOpen(false)} onSubmit={finishOrder} complete={orderComplete} onReset={resetOrder} />
+      <CheckoutModal open={checkoutOpen} items={items} itemCount={itemCount} subtotal={subtotal} shippingFee={shippingFee} total={total} order={order} trackingSaved={trackingSaved} onClose={() => setCheckoutOpen(false)} onSubmit={finishOrder} complete={orderComplete} onReset={resetOrder} />
       <IngredientsDialog item={ingredientsProduct} onClose={() => setIngredientsProduct(null)} />
       {infoTitle && <InfoDialog title={infoTitle} onClose={() => setInfoTitle('')} />}
-      <a className="help-tab" href="https://wa.me/923001234567" target="_blank" rel="noreferrer" aria-label="Contact HairGrow on WhatsApp"><CircleHelp size={17} /><span>Need help?</span></a>
+      <TrackOrderModal open={trackingOpen} onClose={() => setTrackingOpen(false)} />
+      <a className="help-tab" href="https://wa.me/923001234567" target="_blank" rel="noopener noreferrer" aria-label="Contact HairGrow on WhatsApp"><CircleHelp size={17} /><span>Need help?</span></a>
     </>
   )
 }
