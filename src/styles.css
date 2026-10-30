@@ -27,8 +27,8 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
 .desktop-nav > a:hover { color: var(--white); }
 .desktop-nav .nav-order { display: inline-flex; align-items: center; gap: 9px; color: var(--green-bright); }
 .header-actions { display: flex; align-items: center; gap: 12px; }
-.cart-trigger { min-height: 42px; padding: 0 11px; display: inline-flex; align-items: center; gap: 9px; background: none; border: 1px solid var(--line); border-radius: 2px; cursor: pointer; transition: border-color .2s, background .2s; }
-.cart-trigger:hover { border-color: rgba(131, 189, 140, .7); background: rgba(131, 189, 140, .06); }
+.cart-trigger, .wishlist-trigger { min-height: 42px; padding: 0 11px; display: inline-flex; align-items: center; gap: 9px; background: none; border: 1px solid var(--line); border-radius: 2px; cursor: pointer; transition: border-color .2s, background .2s; }
+.cart-trigger:hover, .wishlist-trigger:hover { border-color: rgba(131, 189, 140, .7); background: rgba(131, 189, 140, .06); }
 .cart-label { font-size: 12px; }
 .cart-count { min-width: 20px; height: 20px; display: grid; place-items: center; border-radius: 50%; background: var(--green); color: #0c110d; font-size: 11px; font-weight: 700; }
 .cart-count-updated { animation: cart-badge-pop .42s cubic-bezier(.2, .8, .25, 1); }
@@ -69,8 +69,11 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
 .section-intro h2 em, .ritual-heading h2 em, .stories-heading h2 em { color: var(--amber); font-weight: 500; }
 .section-intro > p, .ritual-heading > p { max-width: 380px; margin: 0 0 3px; color: var(--muted); font-size: 13px; line-height: 1.9; }
 .product-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 17px; align-items: stretch; }
-.product-card { min-width: 0; min-height: 0; display: flex; flex-direction: column; background: var(--surface); border: 1px solid rgba(var(--fg-rgb), .085); transition: border-color .25s, transform .25s; }
+.product-card { min-width: 0; min-height: 0; position: relative; display: flex; flex-direction: column; background: var(--surface); border: 1px solid rgba(var(--fg-rgb), .085); transition: border-color .25s, transform .25s; }
 .product-card:hover { border-color: rgba(242, 169, 0, .34); transform: translateY(-3px); }
+.wishlist-btn { width: 40px; height: 40px; position: absolute; z-index: 2; top: 13px; right: 13px; display: grid; place-items: center; border: 1px solid rgba(255,255,255,.55); border-radius: 50%; background: rgba(17,18,14,.72); color: #fff; cursor: pointer; transition: transform .2s, background .2s, border-color .2s; }
+.wishlist-btn:hover { transform: scale(1.08); border-color: #e11d48; background: rgba(255,255,255,.96); }
+.wishlist-btn.active { background: rgba(255,255,255,.96); }
 .product-photo { height: auto; min-height: 0; position: relative; overflow: hidden; background: #34382c; }
 .product-photo::after { content: ""; position: absolute; inset: 48% 0 0; background: linear-gradient(0deg, rgba(10, 10, 8, .43), transparent); pointer-events: none; }
 .product-photo > img { display: block; object-position: 49% center; filter: saturate(.77) brightness(.84); transition: transform .6s ease, filter .4s; }
@@ -196,6 +199,10 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
 .cart-item-info > p { margin: 0; color: var(--text-soft); font-size: 10px; }
 .cart-item-bottom { width: 100%; margin-top: auto; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 .cart-item-bottom > strong { color: var(--amber); font-size: 12px; }
+.wishlist-item .cart-thumb .variant-bottle { width: 100%; height: 100%; }
+.wishlist-item-actions { display: flex; align-items: center; gap: 8px; }
+.wishlist-item-actions .button-sm { min-height: 34px; padding-inline: 11px; gap: 7px; white-space: nowrap; }
+.icon-button-sm { width: 34px; height: 34px; }
 .cart-item-bottom .quantity-control { min-height: 30px; }
 .cart-item-bottom .quantity-control button { width: 28px; height: 28px; }
 .cart-item-bottom .quantity-control > span { min-width: 18px; font-size: 10px; }
@@ -376,7 +383,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
   .brand { gap: 7px; }
   .brand-mark { width: 30px; height: 30px; }
   .brand-word { font-size: 21px; }
-  .cart-trigger { width: 42px; min-height: 40px; padding: 0; justify-content: center; gap: 0; position: relative; }
+  .cart-trigger, .wishlist-trigger { width: 42px; min-height: 40px; padding: 0; justify-content: center; gap: 0; position: relative; }
   .cart-label { display: none; }
   .cart-count { min-width: 17px; height: 17px; position: absolute; top: -7px; right: -6px; border: 2px solid var(--ink); font-size: 9px; }
   .menu-trigger { display: grid; width: 40px; height: 40px; }

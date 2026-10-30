@@ -150,3 +150,19 @@
   - Linked the GitHub commit directly to Jira issue `HG-2` via `twg jira workitem link commit` (Link ID: `10002`).
   - Verified remote link on `HG-2` via Jira GraphQL/REST API (`remoteLinks` array).
   - Transitioned issue `HG-2` workflow state to `Done` (Transition ID: `41`).
+
+## 8. Jira Task HG-3 — Wishlist and Saved Products
+
+- **Selected Jira Task:** `HG-3` — **Wishlist and Saved Products**
+- **Direct Jira URL:** [https://shagasif83.atlassian.net/browse/HG-3](https://shagasif83.atlassian.net/browse/HG-3)
+- **Task Requirements:** Allow customers to add or remove favorite products, view their saved products, and retain the wishlist after refreshing. This continuation also adds an action to move a saved product to the shopping bag.
+- **Implementation Details:**
+  - Connected the existing product heart buttons, saved-items header control, and wishlist drawer to application state.
+  - Persisted saved product IDs in `localStorage` under `hairgrow-wishlist`, validating product IDs and de-duplicating persisted values when restoring.
+  - Added removal and add-to-bag controls in the saved-products drawer while preserving wishlist membership when an item is added to the cart.
+  - Styled the wishlist controls and saved-product rows to use the existing cart layout and theme.
+- **Quality & Verification:**
+  - `npm.cmd run build` completed successfully (1580 modules transformed).
+  - Passed the browser flow for adding a favorite, opening and removing it from the wishlist, adding it to the cart, and verifying wishlist and cart persistence after refresh.
+  - Confirmed the product-card heart also removes a saved item and clears the saved-items count.
+- **Git Commit & Jira Link:** Pending commit and Jira remote link.

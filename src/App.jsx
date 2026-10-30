@@ -21,6 +21,7 @@ import {
   Sprout,
   Wheat,
   Hand,
+  Heart,
   Minus,
   Plus,
   ShieldCheck,
@@ -245,7 +246,7 @@ function Logo({ onClick }) {
   )
 }
 
-function Header({ count, onCart, cartButtonRef, theme, onTheme }) {
+function Header({ count, onCart, cartButtonRef, wishlistCount = 0, onWishlist, theme, onTheme }) {
   const [menuOpen, setMenuOpen] = useState(false)
 
   function closeMenu() {
@@ -267,6 +268,11 @@ function Header({ count, onCart, cartButtonRef, theme, onTheme }) {
         <div className="header-actions">
           <button className="theme-switch" role="switch" aria-checked={theme === 'dark'} onClick={onTheme} aria-label={theme === 'dark' ? 'Switch to day mode' : 'Switch to night mode'}>
             <span key={theme} className="ts-icon">{theme === 'dark' ? <Moon size={19} strokeWidth={2} /> : <Sun size={20} strokeWidth={2} />}</span>
+          </button>
+          <button className="wishlist-trigger" onClick={onWishlist} aria-label={`Open saved items, ${wishlistCount} items`}>
+            <Heart size={18} strokeWidth={1.8} fill={wishlistCount > 0 ? '#e11d48' : 'none'} color={wishlistCount > 0 ? '#e11d48' : 'currentColor'} />
+            <span className="cart-label">Saved</span>
+            <span key={wishlistCount} className={`cart-count ${wishlistCount > 0 ? 'cart-count-updated' : ''}`} aria-live="polite">{wishlistCount}</span>
           </button>
           <button ref={cartButtonRef} className="cart-trigger" onClick={onCart} aria-label={`Open shopping bag, ${count} items`}>
             <ShoppingBag size={18} strokeWidth={1.8} /><span className="cart-label">Bag</span><span key={count} className={`cart-count ${count > 0 ? 'cart-count-updated' : ''}`} aria-live="polite">{count}</span>
@@ -363,7 +369,7 @@ function ProductRating() {
 
 const INITIAL_PRODUCTS = 6
 
-function ProductShowcase({ concern, onConcern, quantities, onQuantityChange, onAdd, onViewIngredients }) {
+function ProductShowcase({ concern, onConcern, quantities, onQuantityChange, onAdd, onViewIngredients, wishlist = [], onToggleWishlist }) {
   const [expanded, setExpanded] = useState(false)
   useEffect(() => { setExpanded(false) }, [concern])
   const filtered = products.filter((item) => concern === 'all' || item.concerns.includes(concern))
@@ -384,9 +390,19 @@ function ProductShowcase({ concern, onConcern, quantities, onQuantityChange, onA
         <div className="product-grid">
           {visible.map((item, index) => {
             const quantity = quantities[item.id]
+            const isSaved = wishlist.includes(item.id)
 
             return (
               <article className="product-card" key={item.id}>
+                <button
+                  type="button"
+                  className={`wishlist-btn ${isSaved ? 'active' : ''}`}
+                  onClick={() => onToggleWishlist(item.id)}
+                  aria-label={isSaved ? `Remove ${item.name} from saved items` : `Save ${item.name} to wishlist`}
+                  aria-pressed={isSaved}
+                >
+                  <Heart size={17} fill={isSaved ? '#e11d48' : 'none'} color={isSaved ? '#e11d48' : 'currentColor'} strokeWidth={2} />
+                </button>
                 <OilBottleGraphic item={item} index={index} />
                 <div className="product-info">
                   <div className="product-title-row">
@@ -653,6 +669,67 @@ function Footer({ onHelp }) {
   )
 }
 
+function WishlistDrawer({ open, items, onClose, onRemove, onAddToCart }) {
+  useEffect(() => {
+    if (!open) return undefined
+    const onKeyDown = (event) => { if (event.key === 'Escape') onClose() }
+    window.addEventListener('keydown', onKeyDown)
+    document.body.classList.add('drawer-open')
+    return () => { window.removeEventListener('keydown', onKeyDown); document.body.classList.remove('drawer-open') }
+  }, [open, onClose])
+
+  if (!open) return null
+  return (
+    <div className="drawer-layer" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) onClose() }}>
+      <aside className="cart-drawer wishlist-drawer" role="dialog" aria-modal="true" aria-labelledby="wishlist-title">
+        <div className="drawer-header">
+          <div>
+            <span className="eyebrow section-eyebrow">Saved for later</span>
+            <h2 id="wishlist-title">Your Wishlist <span>({items.length})</span></h2>
+          </div>
+          <button className="icon-button" onClick={onClose} aria-label="Close wishlist"><X size={20} /></button>
+        </div>
+        <div className="drawer-content">
+          {items.length === 0 ? (
+            <div className="empty-bag">
+              <span className="empty-icon"><Heart size={24} /></span>
+              <h3>No saved products yet.</h3>
+              <p>Explore the catalog and tap the heart icon on any product to save it to your personal wishlist.</p>
+              <button className="button button-green" onClick={onClose}>Browse collection <ArrowRight size={15} /></button>
+            </div>
+          ) : (
+            <>
+              {items.map((item) => (
+                <article className="cart-item wishlist-item" key={item.id}>
+                  <div className="cart-thumb">
+                    {item.bottle ? <VariantBottle id={`wishlist-${item.id}`} label={item.label} volume={item.volume} {...item.bottle} /> : <img src={item.image} alt={item.imageAlt} />}
+                  </div>
+                  <div className="cart-item-info">
+                    <span className="product-kicker">Scalp &amp; hair treatment</span>
+                    <h3>{item.name}</h3>
+                    <p>{item.detail}</p>
+                    <div className="cart-item-bottom">
+                      <strong>{formatPrice(item.price)}</strong>
+                      <div className="wishlist-item-actions">
+                        <button className="button button-green button-sm" onClick={(event) => onAddToCart(item.id, event)}>
+                          Add to Bag <ShoppingBag size={14} />
+                        </button>
+                        <button className="icon-button icon-button-sm" onClick={() => onRemove(item.id)} aria-label={`Remove ${item.name} from wishlist`}>
+                          <X size={16} />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </article>
+              ))}
+            </>
+          )}
+        </div>
+      </aside>
+    </div>
+  )
+}
+
 function CartDrawer({ open, items, itemCount, subtotal, shippingFee, total, onClose, onQuantityChange, onCheckout }) {
   useEffect(() => {
     if (!open) return undefined
@@ -889,9 +966,32 @@ export default function App() {
       }
     } catch {}
   }, [cart])
+  const [wishlist, setWishlist] = useState(() => {
+    try {
+      const saved = localStorage.getItem('hairgrow-wishlist')
+      if (!saved) return []
+      const parsed = JSON.parse(saved)
+      if (Array.isArray(parsed)) {
+        return [...new Set(parsed.filter((id) => typeof id === 'string' && products.some((product) => product.id === id)))]
+      }
+      return []
+    } catch {
+      return []
+    }
+  })
+  useEffect(() => {
+    try {
+      if (wishlist.length === 0) {
+        localStorage.removeItem('hairgrow-wishlist')
+      } else {
+        localStorage.setItem('hairgrow-wishlist', JSON.stringify(wishlist))
+      }
+    } catch {}
+  }, [wishlist])
   const [flyTokens, setFlyTokens] = useState([])
   const [productQuantities, setProductQuantities] = useState(() => Object.fromEntries(products.map(({ id }) => [id, 1])))
   const [cartOpen, setCartOpen] = useState(false)
+  const [wishlistOpen, setWishlistOpen] = useState(false)
   const [checkoutOpen, setCheckoutOpen] = useState(false)
   const [orderComplete, setOrderComplete] = useState(false)
   const [order, setOrder] = useState(null)
@@ -899,6 +999,7 @@ export default function App() {
   const [ingredientsProduct, setIngredientsProduct] = useState(null)
 
   const items = products.filter(({ id }) => cart[id] > 0).map((item) => ({ ...item, quantity: cart[item.id] }))
+  const wishlistItems = products.filter(({ id }) => wishlist.includes(id))
   const itemCount = items.reduce((total, item) => total + item.quantity, 0)
   const subtotal = items.reduce((total, item) => total + item.price * item.quantity, 0)
   const shippingFee = calculateShippingFee(subtotal)
@@ -936,6 +1037,12 @@ export default function App() {
     })
   }
 
+  function toggleWishlist(productId) {
+    setWishlist((current) => current.includes(productId)
+      ? current.filter((id) => id !== productId)
+      : [...current, productId])
+  }
+
   function startCheckout() {
     setCartOpen(false)
     setCheckoutOpen(true)
@@ -970,10 +1077,11 @@ export default function App() {
 
   return (
     <>
-      <Header theme={theme} onTheme={() => setTheme(theme === 'dark' ? 'light' : 'dark')} count={itemCount} cartButtonRef={cartButtonRef} onCart={() => setCartOpen(true)} />
-      <main><Hero /><TrustStrip /><ProductShowcase concern={concern} onConcern={setConcern} quantities={productQuantities} onQuantityChange={(productId, quantity) => setProductQuantities((current) => ({ ...current, [productId]: quantity }))} onAdd={addToCart} onViewIngredients={setIngredientsProduct} /><Ingredients /><CareGuide /><HairQuiz onPick={setConcern} /><Testimonials /><Faq /><Waitlist /></main>
+      <Header theme={theme} onTheme={() => setTheme(theme === 'dark' ? 'light' : 'dark')} count={itemCount} cartButtonRef={cartButtonRef} onCart={() => { setWishlistOpen(false); setCartOpen(true) }} wishlistCount={wishlist.length} onWishlist={() => { setCartOpen(false); setWishlistOpen(true) }} />
+      <main><Hero /><TrustStrip /><ProductShowcase concern={concern} onConcern={setConcern} quantities={productQuantities} onQuantityChange={(productId, quantity) => setProductQuantities((current) => ({ ...current, [productId]: quantity }))} onAdd={addToCart} onViewIngredients={setIngredientsProduct} wishlist={wishlist} onToggleWishlist={toggleWishlist} /><Ingredients /><CareGuide /><HairQuiz onPick={setConcern} /><Testimonials /><Faq /><Waitlist /></main>
       <Footer onHelp={setInfoTitle} />
       <div className="cart-fly-layer" aria-hidden="true">{flyTokens.map((token) => <span key={token.id} className="cart-fly-token" style={{ left: token.x, top: token.y, '--fly-x': `${token.deltaX}px`, '--fly-y': `${token.deltaY}px` }} onAnimationEnd={() => setFlyTokens((current) => current.filter(({ id }) => id !== token.id))}>+{token.amount}</span>)}</div>
+      <WishlistDrawer open={wishlistOpen} items={wishlistItems} onClose={() => setWishlistOpen(false)} onRemove={toggleWishlist} onAddToCart={(productId, event) => addToCart(productId, 1, event)} />
       <CartDrawer open={cartOpen} items={items} itemCount={itemCount} subtotal={subtotal} shippingFee={shippingFee} total={total} onClose={() => setCartOpen(false)} onQuantityChange={changeCartQuantity} onCheckout={startCheckout} />
       <CheckoutModal open={checkoutOpen} items={items} itemCount={itemCount} subtotal={subtotal} shippingFee={shippingFee} total={total} order={order} onClose={() => setCheckoutOpen(false)} onSubmit={finishOrder} complete={orderComplete} onReset={resetOrder} />
       <IngredientsDialog item={ingredientsProduct} onClose={() => setIngredientsProduct(null)} />
